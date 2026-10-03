@@ -6,9 +6,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from app.api.exhibits import ExhibitResponse, USAGE_NOTE, enrich_exhibit
-from app.config import settings
-from app.data.exhibits import get_all_buildings, get_route_candidates
-from app.services.route_generator import RouteGenerationError, generate_route
+from app.data.exhibits import get_all_buildings
+from app.services.route_generator import RouteGenerationError, generate_catalog_stops, select_candidate_exhibits
 
 
 logger = logging.getLogger("app.api.routes")
@@ -64,7 +63,8 @@ AVAILABILITY_NOTE = (
 
 @router.post("/routes/generate", response_model=GenerateRouteResponse)
 def create_route(payload: GenerateRouteRequest) -> GenerateRouteResponse:
-    candidates = get_route_candidates(payload.building_id)
+    target_count = 4 if payload.duration_minutes <= 40 else 5 if payload.duration_minutes <= 75 else 6
+    candidates = select_candidate_exhibits(payload.interests, target_count, payload.building_id)
     building = next((item for item in get_all_buildings() if item.get("id") == payload.building_id), None)
     if not candidates:
         return GenerateRouteResponse(
@@ -77,12 +77,9 @@ def create_route(payload: GenerateRouteRequest) -> GenerateRouteResponse:
             availability_note=AVAILABILITY_NOTE,
             usage_note=USAGE_NOTE,
         )
-    if not settings.yandex_folder_id:
-        raise HTTPException(status_code=503, detail="AI Studio is not configured: set YANDEX_FOLDER_ID")
-
     enriched = [enrich_exhibit(candidate) for candidate in candidates]
     try:
-        generated = generate_route(
+        generated, is_fallback = generate_catalog_stops(
             candidates=enriched,
             audience=payload.audience.strip(),
             interests=[interest.strip()[:80] for interest in payload.interests if interest.strip()],
@@ -108,6 +105,8 @@ def create_route(payload: GenerateRouteRequest) -> GenerateRouteResponse:
         explanation = (
             f"В каталоге найдено только {len(candidates)} подходящих объектов, поэтому маршрут короче обычных 4–6 остановок."
         )
+    elif is_fallback:
+        explanation = "Использован нейтральный маршрут-наблюдение из официального каталога."
     else:
         explanation = "Экспонаты выбраны AI из подходящих записей официального каталога."
     return GenerateRouteResponse(

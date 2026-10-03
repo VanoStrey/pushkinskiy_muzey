@@ -2,7 +2,6 @@ import json
 
 from fastapi.testclient import TestClient
 
-import app.api.routes
 import app.services.route_generator
 from app.api.exhibits import enrich_exhibit
 from app.config import Settings
@@ -36,7 +35,7 @@ def test_exhibit_api_returns_catalog_location_by_visitor_number():
 
 
 def test_route_api_uses_ai_ids_but_canonical_catalog_details(monkeypatch):
-    monkeypatch.setattr(app.api.routes, "settings", Settings(yandex_folder_id="test-folder"))
+    monkeypatch.setattr(app.services.route_generator, "settings", Settings(yandex_folder_id="test-folder"))
     prompts = []
 
     def fake_ask(prompt, instructions, timeout):
@@ -66,18 +65,20 @@ def test_route_api_uses_ai_ids_but_canonical_catalog_details(monkeypatch):
     assert first["source_url"] == "https://pushkinmuseum.art/data/fonds/ancient_east/1_1_a/1_1_a_5776/index.php"
 
 
-def test_route_api_reports_ai_studio_not_configured(monkeypatch):
-    monkeypatch.setattr(app.api.routes, "settings", Settings(yandex_folder_id=""))
+def test_route_api_uses_neutral_observations_when_ai_studio_is_not_configured(monkeypatch):
+    monkeypatch.setattr(app.services.route_generator, "settings", Settings(yandex_folder_id=""))
     with TestClient(fastapi_app) as client:
         response = client.post(
             "/api/routes/generate",
             json={"audience": "подростки", "duration_minutes": 45},
         )
-    assert response.status_code == 503
+    assert response.status_code == 200
+    assert response.json()["stops"]
+    assert response.json()["stops"][0]["activity"]
 
 
 def test_route_api_rejects_ids_outside_candidate_catalog(monkeypatch):
-    monkeypatch.setattr(app.api.routes, "settings", Settings(yandex_folder_id="test-folder"))
+    monkeypatch.setattr(app.services.route_generator, "settings", Settings(yandex_folder_id="test-folder"))
     monkeypatch.setattr(
         app.services.route_generator,
         "ask",
@@ -94,7 +95,7 @@ def test_route_api_rejects_ids_outside_candidate_catalog(monkeypatch):
 
 
 def test_route_api_returns_explanation_when_no_candidates_exist(monkeypatch):
-    monkeypatch.setattr(app.api.routes, "settings", Settings(yandex_folder_id=""))
+    monkeypatch.setattr(app.services.route_generator, "settings", Settings(yandex_folder_id=""))
     with TestClient(fastapi_app) as client:
         response = client.post(
             "/api/routes/generate",

@@ -11,6 +11,7 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   server: {
+    allowedHosts: true,
     proxy: {
       "/api/": process.env.API_PROXY_TARGET || "http://localhost:8000",
     },

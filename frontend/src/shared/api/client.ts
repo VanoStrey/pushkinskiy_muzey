@@ -32,7 +32,11 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-export async function apiPost<T, Body>(path: string, body: Body, init?: RequestInit): Promise<T> {
+export async function apiPost<T, Body = unknown>(
+  path: string,
+  body?: Body,
+  init?: RequestInit,
+): Promise<T> {
   const headers = new Headers(init?.headers);
   if (!headers.has("Accept")) headers.set("Accept", "application/json");
   if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
@@ -42,7 +46,7 @@ export async function apiPost<T, Body>(path: string, body: Body, init?: RequestI
       ...init,
       method: "POST",
       headers,
-      body: JSON.stringify(body),
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
     throw new ApiError("Network error: backend is unreachable");

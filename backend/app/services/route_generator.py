@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import json
 import re
+import uuid
 from typing import Any
 
 from app.ai import ask
+from app.config import settings
+from app.data.exhibits import get_route_candidates
+from app.schemas.route import RouteGenerateRequest, RouteGenerateResponse, Stop, Challenge
 
 
 class RouteGenerationError(ValueError):
@@ -26,6 +30,7 @@ ROUTE_INSTRUCTIONS = """Ты составляешь образовательны
 
 
 def _candidate_facts(exhibit: dict[str, Any]) -> dict[str, Any]:
+    hall = exhibit.get("hall") or {}
     return {
         "id": exhibit["id"],
         "title": exhibit.get("title"),
@@ -38,11 +43,7 @@ def _candidate_facts(exhibit: dict[str, Any]) -> dict[str, Any]:
         "description": exhibit.get("description"),
         "annotation": exhibit.get("annotation"),
         "building_id": exhibit.get("building_id"),
-        "hall": {
-            "number": exhibit.get("hall", {}).get("number"),
-            "name": exhibit.get("hall", {}).get("name"),
-            "floor_number": exhibit.get("hall", {}).get("floor_number"),
-        },
+        "hall": {"number": hall.get("number"), "name": hall.get("name"), "floor_number": hall.get("floor_number")},
     }
 
 
@@ -113,3 +114,115 @@ def generate_route(
     if len(candidates) < 4 and len(stops) != len(candidates):
         raise RouteGenerationError("AI Studio did not include every available candidate in the short route")
     return stops
+
+
+def select_candidate_exhibits(
+    interests: list[str], target_count: int, building_id: str = "116"
+) -> list[dict[str, Any]]:
+    """Select eligible records only from the processed museum catalog."""
+    candidates = get_route_candidates(building_id)
+    terms = [value.strip().casefold() for value in interests if value.strip()]
+
+    def score(exhibit: dict[str, Any]) -> int:
+        searchable = " ".join(
+            [
+                str(exhibit.get("title") or ""),
+                " ".join(exhibit.get("authors") or []),
+                str(exhibit.get("type") or ""),
+                str(exhibit.get("country") or ""),
+                str(exhibit.get("material") or ""),
+                str(exhibit.get("annotation") or ""),
+            ]
+        ).casefold()
+        return sum(1 for term in terms if term in searchable)
+
+    candidates.sort(key=score, reverse=True)
+    return candidates[: min(len(candidates), max(4, target_count + 3))]
+
+
+def _target_stop_count(duration_minutes: int) -> int:
+    return 4 if duration_minutes <= 40 else 5 if duration_minutes <= 75 else 6
+
+
+def generate_catalog_stops(
+    *, candidates: list[dict[str, Any]], audience: str, interests: list[str], duration_minutes: int
+) -> tuple[list[dict[str, str]], bool]:
+    """Use the validated AI response when configured, otherwise use neutral observation tasks."""
+    target_count = min(_target_stop_count(duration_minutes), len(candidates))
+    if not candidates:
+        return [], True
+    if not settings.yandex_folder_id:
+        return [
+            {
+                "id": str(item["id"]),
+                "reason": "Экспонат входит в официальную экспозицию выбранного здания.",
+                "activity": "Осмотрите экспонат и отметьте одну деталь, которая привлекла ваше внимание.",
+            }
+            for item in candidates[:target_count]
+        ], True
+    return generate_route(
+        candidates=candidates,
+        audience=audience,
+        interests=interests,
+        duration_minutes=duration_minutes,
+    ), False
+
+
+def generate_personalized_route(request: RouteGenerateRequest) -> RouteGenerateResponse:
+    """Adapt the shared official-catalog generator to the original tour UI contract."""
+    target_count = _target_stop_count(request.duration_minutes)
+    candidates = select_candidate_exhibits(request.interests, target_count)
+    audience = f"{request.group_type}; {request.difficulty}; формат {request.style}"
+    generated, is_fallback = generate_catalog_stops(
+        candidates=candidates,
+        audience=audience,
+        interests=request.interests,
+        duration_minutes=request.duration_minutes,
+    )
+    by_id = {str(item["id"]): item for item in candidates}
+    stops: list[Stop] = []
+    for position, item in enumerate(generated, start=1):
+        exhibit = by_id[item["id"]]
+        hall = exhibit.get("hall") or {}
+        building_name = hall.get("building_name") or exhibit.get("building_name")
+        hall_label = hall.get("number") or hall.get("name")
+        location = ", ".join(value for value in (building_name, f"Зал {hall_label}" if hall_label else None) if value)
+        authors = exhibit.get("authors") or []
+        date = exhibit.get("date_text") or (str(exhibit["year"]) if exhibit.get("year") is not None else None)
+        source_text = str(exhibit.get("annotation") or exhibit.get("description") or "")[:500]
+        stops.append(
+            Stop(
+                position=position,
+                exhibit_id=item["id"],
+                title=exhibit.get("title") or "Название не указано в данных музея",
+                artist=", ".join(authors) if authors else None,
+                date=date,
+                image_url=None,
+                location=location or None,
+                description=source_text or "В открытой выгрузке музея нет описания этого экспоната.",
+                personalization_reason=item["reason"],
+                look_closer="Сначала осмотрите экспонат целиком, затем выполните задание-наблюдение.",
+                challenge=Challenge(
+                    type="observation",
+                    question=item["activity"],
+                    options=[],
+                    correct_option=None,
+                    explanation="Задание на наблюдение не имеет правильного ответа и не оценивается.",
+                ),
+                provenance_source=exhibit.get("inventory_number"),
+                source_url=exhibit.get("source_url"),
+            )
+        )
+
+    title = "Ваш маршрут по Пушкинскому музею"
+    return RouteGenerateResponse(
+        route_id=f"museum-route-{uuid.uuid4().hex[:10]}",
+        title=title,
+        intro=(
+            "Остановки основаны на официальном каталоге музея. "
+            "Задания помогают внимательно рассмотреть экспонаты; ответы не оцениваются."
+        ),
+        duration_minutes=request.duration_minutes,
+        is_fallback=is_fallback,
+        stops=stops,
+    )
