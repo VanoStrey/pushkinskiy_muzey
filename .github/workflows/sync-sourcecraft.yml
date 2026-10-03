@@ -52,7 +52,9 @@ jobs:
             echo "SourceCraft main already contains this GitHub main commit."
             exit 0
           else
-            git merge --no-edit --no-ff --allow-unrelated-histories \
+            git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              merge --no-edit --no-ff --allow-unrelated-histories \
               sourcecraft/main \
               -m "Merge SourceCraft main history for GitHub sync"
           fi
