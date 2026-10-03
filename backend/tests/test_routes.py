@@ -38,7 +38,8 @@ def test_route_api_uses_ai_ids_but_canonical_catalog_details(monkeypatch):
     monkeypatch.setattr(app.services.route_generator, "settings", Settings(yandex_folder_id="test-folder"))
     prompts = []
 
-    def fake_ask(prompt, instructions, timeout):
+    def fake_ask(prompt, instructions, timeout, **kwargs):
+        del kwargs
         prompts.append(prompt)
         return _fake_model_response(prompt)
 
