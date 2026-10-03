@@ -1,4 +1,5 @@
 export type {
+  BreakInfo,
   Challenge,
   DifficultyLevel,
   GroupType,
@@ -9,4 +10,5 @@ export type {
 } from "./model/types";
 
 export { ArtworkImage } from "./ui/artwork-image";
+export { ExhibitPresentationCard } from "./ui/exhibit-presentation-card";
 export { StopCard } from "./ui/stop-card";

@@ -20,6 +20,21 @@ export interface Stop {
   challenge: Challenge;
   provenance_source?: string | null;
   source_url?: string | null;
+  hall_id?: string | null;
+  hall_number?: string | null;
+  hall_name?: string | null;
+  floor_number?: string | null;
+  building_id?: string | null;
+  building_name?: string | null;
+}
+
+export interface BreakInfo {
+  title: string;
+  location: string;
+  duration_minutes: number;
+  note: string;
+  floor_number?: string | null;
+  hall_number?: string | null;
 }
 
 export type GroupType = "solo" | "friends" | "family" | "couple";
@@ -32,6 +47,8 @@ export interface RouteGenerateRequest {
   group_type: GroupType;
   difficulty: DifficultyLevel;
   style: TourStyle;
+  include_break?: boolean;
+  visitor_comment?: string | null;
 }
 
 export interface RouteGenerateResponse {
@@ -41,4 +58,7 @@ export interface RouteGenerateResponse {
   duration_minutes: number;
   is_fallback: boolean;
   stops: Stop[];
+  has_break?: boolean;
+  break_after_stop?: number | null;
+  break_info?: BreakInfo | null;
 }
