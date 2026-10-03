@@ -86,7 +86,11 @@ export function InteractiveMap({
         return res.text();
       })
       .then((rawSvg) => {
-        setSvgCache((prev) => ({ ...prev, [activeFloor]: rawSvg }));
+        let normalized = rawSvg;
+        if (!normalized.includes("preserveAspectRatio")) {
+          normalized = normalized.replace("<svg ", '<svg preserveAspectRatio="xMidYMid meet" ');
+        }
+        setSvgCache((prev) => ({ ...prev, [activeFloor]: normalized }));
       })
       .catch((err) => {
         console.error("Failed to load official vector floor plan:", err);
@@ -115,57 +119,44 @@ export function InteractiveMap({
       });
   }, [stops, activeFloor]);
 
-  // Map of hallId -> stop index for SVG polygon interactions
-  const hallToStopMap = useMemo(() => {
-    const map = new Map<string, { stop: Stop; originalIndex: number }>();
+  // Map of hallId -> array of { stop: Stop; originalIndex: number }
+  const hallToStopsMap = useMemo(() => {
+    const map = new Map<string, Array<{ stop: Stop; originalIndex: number }>>();
     stops.forEach((stop, idx) => {
       const sp = getHallSpatialData(stop.hall_id, stop.hall_number);
       if (sp) {
-        map.set(sp.hallId, { stop, originalIndex: idx });
+        if (!map.has(sp.hallId)) map.set(sp.hallId, []);
+        map.get(sp.hallId)!.push({ stop, originalIndex: idx });
       }
     });
     return map;
   }, [stops]);
 
-  // Group floor stops by hall to offset multiple pins in the same hall
-  const hallPinPositions = useMemo(() => {
-    // Map hallId -> array of { stop, originalIndex, pinX, pinY }
-    const grouped = new Map<string, Array<{ stop: Stop; originalIndex: number }>>();
+  // Group floor stops by hall to layout pins cleanly without collision
+  const hallClusters = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        spatial: (typeof HALL_SPATIAL_REGISTRY)[string];
+        stops: Array<{ stop: Stop; originalIndex: number }>;
+      }
+    >();
 
     floorStops.forEach((item) => {
       const sp = getHallSpatialData(item.stop.hall_id, item.stop.hall_number);
-      const hallId = sp?.hallId || "unknown";
-      if (!grouped.has(hallId)) grouped.set(hallId, []);
-      grouped.get(hallId)!.push(item);
-    });
-
-    const positions: Array<{
-      stop: Stop;
-      originalIndex: number;
-      pinX: number;
-      pinY: number;
-      spatial: (typeof HALL_SPATIAL_REGISTRY)[string];
-    }> = [];
-
-    grouped.forEach((items, hallId) => {
-      const sp = HALL_SPATIAL_REGISTRY[hallId];
       if (!sp) return;
-      const count = items.length;
-
-      items.forEach((item, posInHall) => {
-        // If multiple stops in the same hall, offset horizontally
-        const offsetX = count > 1 ? (posInHall - (count - 1) / 2) * 90 : 0;
-        positions.push({
-          stop: item.stop,
-          originalIndex: item.originalIndex,
-          pinX: sp.cx + offsetX,
-          pinY: sp.cy,
-          spatial: sp,
-        });
-      });
+      if (!map.has(sp.hallId)) {
+        map.set(sp.hallId, { spatial: sp, stops: [] });
+      }
+      map.get(sp.hallId)!.stops.push(item);
     });
 
-    return positions;
+    // Sort clusters chronologically by the first stop index in that hall
+    return Array.from(map.values()).sort((a, b) => {
+      const minA = Math.min(...a.stops.map((s) => s.originalIndex));
+      const minB = Math.min(...b.stops.map((s) => s.originalIndex));
+      return minA - minB;
+    });
   }, [floorStops]);
 
   // All halls on this floor for displaying clean background room numbers
@@ -196,12 +187,131 @@ export function InteractiveMap({
     return null;
   }, [stops, currentStopIndex, activeFloor]);
 
-  // Connect stops on this floor in sequence with a clean architectural trajectory line
-  const routePolylinePoints = useMemo(() => {
-    if (hallPinPositions.length < 2) return "";
-    const sorted = [...hallPinPositions].sort((a, b) => a.originalIndex - b.originalIndex);
-    return sorted.map((p) => `${p.pinX},${p.pinY}`).join(" ");
-  }, [hallPinPositions]);
+  // Dynamic CSS rules applied to official SVG polygons (100% immune to zoom/pan/re-render resets)
+  const dynamicHallStyles = useMemo(() => {
+    let css = `
+      .map-hall {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        transition: fill 0.2s ease, fill-opacity 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease;
+      }
+      .map-hall:hover {
+        filter: brightness(0.96);
+      }
+      .map-hall {
+        fill: #FFFFFF !important;
+        fill-opacity: 0.85 !important;
+        stroke: #D5CDC2 !important;
+        stroke-width: 2.5px !important;
+        stroke-dasharray: none !important;
+      }
+    `;
+
+    // Break hall styling (Italian courtyard, hall 15 / id 198)
+    if (activeFloor === 1 && hasBreak) {
+      css += `
+        .map-hall[data-hall="198"] {
+          fill: #C69214 !important;
+          fill-opacity: 0.22 !important;
+          stroke: #C69214 !important;
+          stroke-width: 5px !important;
+          stroke-dasharray: none !important;
+        }
+      `;
+    }
+
+    // Route halls styling
+    hallToStopsMap.forEach((hallStops, hallId) => {
+      if (!hallStops || hallStops.length === 0) return;
+      const sp = HALL_SPATIAL_REGISTRY[hallId];
+      if (sp && sp.floor !== activeFloor) return;
+
+      const hasCurrent = hallStops.some((s) => s.originalIndex === currentStopIndex);
+      const allCompleted = hallStops.every((s) => s.originalIndex < currentStopIndex);
+
+      if (hasCurrent) {
+        css += `
+          .map-hall[data-hall="${hallId}"] {
+            fill: #899770 !important;
+            fill-opacity: 0.38 !important;
+            stroke: #899770 !important;
+            stroke-width: 8px !important;
+            stroke-dasharray: none !important;
+          }
+        `;
+      } else if (allCompleted) {
+        css += `
+          .map-hall[data-hall="${hallId}"] {
+            fill: #2E7D32 !important;
+            fill-opacity: 0.22 !important;
+            stroke: #2E7D32 !important;
+            stroke-width: 6px !important;
+            stroke-dasharray: none !important;
+          }
+        `;
+      } else {
+        css += `
+          .map-hall[data-hall="${hallId}"] {
+            fill: #899770 !important;
+            fill-opacity: 0.14 !important;
+            stroke: #899770 !important;
+            stroke-width: 4px !important;
+            stroke-dasharray: none !important;
+          }
+        `;
+      }
+    });
+
+    return css;
+  }, [hallToStopsMap, activeFloor, currentStopIndex, hasBreak]);
+
+  // Delegated click handler on SVG container
+  const handleSvgHallClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = (e.target as Element).closest<SVGGraphicsElement>(".map-hall, [data-hall]");
+      if (!target) return;
+      const hallId = target.getAttribute("data-hall");
+      if (!hallId) return;
+
+      const hallStops = hallToStopsMap.get(hallId);
+      const isBreakHall = activeFloor === 1 && hallId === "198" && hasBreak;
+      const sp = HALL_SPATIAL_REGISTRY[hallId];
+
+      if (hallStops && hallStops.length > 0) {
+        const targetItem =
+          hallStops.find((s) => s.originalIndex === currentStopIndex) ||
+          hallStops.find((s) => s.originalIndex > currentStopIndex) ||
+          hallStops[0];
+        onSelectStop?.(targetItem.originalIndex);
+        if (sp) {
+          setSelectedInfo({
+            hallName: sp.name,
+            hallNumber: sp.number,
+            stop: targetItem.stop,
+            stopIndex: targetItem.originalIndex,
+            floor: sp.floor,
+          });
+        }
+      } else if (isBreakHall) {
+        setSelectedInfo({
+          hallName: "Итальянский дворик (Зал 15)",
+          hallNumber: "15",
+          floor: 1,
+          note:
+            breakInfo?.note ||
+            `Кафе в цокольном этаже Главного здания временно закрыто на техобслуживание. Для отдыха ${breakAfterStop ? `после ${breakAfterStop}-й остановки` : "в середине визита"} рекомендуем диваны в Итальянском дворике.`,
+        });
+      } else if (sp) {
+        setSelectedInfo({
+          hallName: sp.name,
+          hallNumber: sp.number,
+          floor: sp.floor,
+          note: "Постоянная экспозиция Главного здания. Экспонаты зала открыты для свободного осмотра.",
+        });
+      }
+    },
+    [hallToStopsMap, activeFloor, currentStopIndex, hasBreak, breakInfo, breakAfterStop, onSelectStop]
+  );
 
   // Highlight and attach interactions to the official SVG polygons
   useEffect(() => {
@@ -213,7 +323,7 @@ export function InteractiveMap({
       const hallId = el.getAttribute("data-hall");
       if (!hallId) return;
 
-      const stopInfo = hallToStopMap.get(hallId);
+      const hallStops = hallToStopsMap.get(hallId);
       const isBreakHall = activeFloor === 1 && hallId === "198" && hasBreak;
       const sp = HALL_SPATIAL_REGISTRY[hallId];
 
@@ -221,37 +331,46 @@ export function InteractiveMap({
       el.style.cursor = "pointer";
       el.style.pointerEvents = "auto";
 
-      if (stopInfo !== undefined) {
-        if (stopInfo.originalIndex === currentStopIndex) {
+      if (hallStops && hallStops.length > 0) {
+        const hasCurrent = hallStops.some((s) => s.originalIndex === currentStopIndex);
+        const allCompleted = hallStops.every((s) => s.originalIndex < currentStopIndex);
+
+        if (hasCurrent) {
           // Current stop hall
           el.style.fill = "#899770";
           el.style.fillOpacity = "0.38";
           el.style.stroke = "#899770";
           el.style.strokeWidth = "8px";
-        } else if (stopInfo.originalIndex < currentStopIndex) {
+          el.style.strokeDasharray = "none";
+        } else if (allCompleted) {
           // Visited hall
           el.style.fill = "#2E7D32";
           el.style.fillOpacity = "0.22";
           el.style.stroke = "#2E7D32";
           el.style.strokeWidth = "6px";
+          el.style.strokeDasharray = "none";
         } else {
           // Upcoming hall
           el.style.fill = "#899770";
           el.style.fillOpacity = "0.14";
           el.style.stroke = "#899770";
-          el.style.strokeWidth = "5px";
-          el.style.strokeDasharray = "10 5";
+          el.style.strokeWidth = "4px";
+          el.style.strokeDasharray = "none";
         }
 
         el.onclick = (e) => {
           e.stopPropagation();
-          onSelectStop?.(stopInfo.originalIndex);
+          const targetItem =
+            hallStops.find((s) => s.originalIndex === currentStopIndex) ||
+            hallStops.find((s) => s.originalIndex > currentStopIndex) ||
+            hallStops[0];
+          onSelectStop?.(targetItem.originalIndex);
           if (sp) {
             setSelectedInfo({
               hallName: sp.name,
               hallNumber: sp.number,
-              stop: stopInfo.stop,
-              stopIndex: stopInfo.originalIndex,
+              stop: targetItem.stop,
+              stopIndex: targetItem.originalIndex,
               floor: sp.floor,
             });
           }
@@ -261,8 +380,8 @@ export function InteractiveMap({
         el.style.fill = "#C69214";
         el.style.fillOpacity = "0.22";
         el.style.stroke = "#C69214";
-        el.style.strokeWidth = "6px";
-        el.style.strokeDasharray = "10 5";
+        el.style.strokeWidth = "5px";
+        el.style.strokeDasharray = "none";
 
         el.onclick = (e) => {
           e.stopPropagation();
@@ -299,12 +418,13 @@ export function InteractiveMap({
   }, [
     activeFloor,
     svgCache,
-    hallToStopMap,
+    hallToStopsMap,
     currentStopIndex,
     hasBreak,
     breakInfo,
     breakAfterStop,
     onSelectStop,
+    scale,
   ]);
 
   // Center view on current stop coordinate
@@ -597,47 +717,24 @@ export function InteractiveMap({
               aspectRatio: activeFloor === 1 ? "3203.9 / 2322.7" : "3203.8 / 2579",
             }}
           >
+            {/* Declarative dynamic hall styling that is 100% immune to zoom/pan resets */}
+            <style dangerouslySetInnerHTML={{ __html: dynamicHallStyles }} />
+
             {/* Base official vector floor plan from pushkinmuseum.art */}
             <div
               ref={svgContainerRef}
+              onClick={handleSvgHallClick}
               className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:block"
               dangerouslySetInnerHTML={{ __html: svgCache[activeFloor] }}
             />
 
-            {/* Synchronized Vector Overlay Layer */}
+            {/* Synchronized Vector Overlay Layer (1:1 identical viewBox and aspect ratio) */}
             <svg
               viewBox={FLOOR_VIEWBOX[activeFloor]}
               className="absolute inset-0 w-full h-full pointer-events-none"
-              preserveAspectRatio="none"
+              preserveAspectRatio="xMidYMid meet"
             >
-              {/* Layer 1: Directional Route Trajectory Polyline */}
-              {routePolylinePoints && (
-                <g className="route-flow-layer pointer-events-none">
-                  {/* Subtle shadow glow */}
-                  <polyline
-                    points={routePolylinePoints}
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeWidth={10}
-                    strokeLinecap="square"
-                    strokeLinejoin="round"
-                    strokeOpacity={0.9}
-                  />
-                  {/* Active trajectory line */}
-                  <polyline
-                    points={routePolylinePoints}
-                    fill="none"
-                    stroke="#899770"
-                    strokeWidth={5}
-                    strokeDasharray="16 10"
-                    strokeLinecap="square"
-                    strokeLinejoin="round"
-                    strokeOpacity={0.85}
-                  />
-                </g>
-              )}
-
-              {/* Layer 2: Staircase transition indicator if next stop is on the other floor */}
+              {/* Staircase transition indicator if next stop is on the other floor */}
               {nextFloorTransition && (
                 <g
                   className="cursor-pointer pointer-events-auto transition-transform hover:scale-105"
@@ -646,7 +743,6 @@ export function InteractiveMap({
                     handleResetView();
                   }}
                 >
-                  <circle cx={1860} cy={1550} r={40} fill="#899770" fillOpacity={0.2} />
                   <rect
                     x={1860 - 150}
                     y={1550 - 24}
@@ -674,8 +770,8 @@ export function InteractiveMap({
               {/* Layer 3: Architectural Landmarks (Entrance, Staircases, Courtyards) */}
               {floorLandmarks.map((lm) => {
                 // If there's already an active stop at this position, omit landmark badge to avoid collision
-                const hasStopClose = hallPinPositions.some(
-                  (p) => Math.hypot(p.pinX - lm.cx, p.pinY - lm.cy) < 100
+                const hasStopClose = hallClusters.some(
+                  (c) => Math.hypot(c.spatial.cx - lm.cx, c.spatial.cy - lm.cy) < 100
                 );
                 if (hasStopClose) return null;
 
@@ -720,7 +816,7 @@ export function InteractiveMap({
 
               {/* Layer 4: Universal Hall Numbers for all rooms without tour stops */}
               {floorHallsList.map((sp) => {
-                const hasStopInHall = hallPinPositions.some((p) => p.spatial.hallId === sp.hallId);
+                const hasStopInHall = hallClusters.some((c) => c.spatial.hallId === sp.hallId);
                 if (hasStopInHall) return null; // Tour stop pin will be rendered on top
                 const isBreak = activeFloor === 1 && sp.hallId === "198" && hasBreak;
 
@@ -765,86 +861,265 @@ export function InteractiveMap({
                 );
               })}
 
-              {/* Layer 5: Tour Stop Pins (with individual offsets if multiple stops in hall) */}
-              {hallPinPositions.map(({ stop, originalIndex, pinX, pinY, spatial }) => {
-                const isCurrent = originalIndex === currentStopIndex;
-                const isCompleted = originalIndex < currentStopIndex;
-                const stopNumber = originalIndex + 1;
+              {/* Layer 5: Tour Stop Pins (Clustered by hall so pins & labels never overlap) */}
+              {hallClusters.map((cluster) => {
+                const { spatial, stops: clusterStops } = cluster;
+                const totalInHall = clusterStops.length;
+                const pinSpacing = 72;
 
                 return (
-                  <g
-                    key={`${stop.exhibit_id}-${originalIndex}`}
-                    className="cursor-pointer pointer-events-auto transition-transform hover:scale-110"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectStop?.(originalIndex);
-                      setSelectedInfo({
-                        hallName: spatial.name,
-                        hallNumber: spatial.number,
-                        stop,
-                        stopIndex: originalIndex,
-                        floor: spatial.floor,
-                      });
-                    }}
-                  >
-                    {/* Pulsing ring for current stop */}
-                    {isCurrent && (
-                      <circle
-                        cx={pinX}
-                        cy={pinY}
-                        r={72}
-                        fill="#899770"
-                        fillOpacity={0.25}
-                        className="animate-ping"
-                      />
-                    )}
+                  <g key={`cluster-${spatial.hallId}`}>
+                    {/* Render each pin in this hall */}
+                    {clusterStops.map(({ stop, originalIndex }, idx) => {
+                      const isCurrent = originalIndex === currentStopIndex;
+                      const isCompleted = originalIndex < currentStopIndex;
+                      const stopNumber = originalIndex + 1;
 
-                    {/* Outer border plate */}
-                    <circle
-                      cx={pinX}
-                      cy={pinY}
-                      r={isCurrent ? 44 : 36}
-                      fill={isCurrent ? "#899770" : isCompleted ? "#2E7D32" : "#FAF8F5"}
-                      stroke={isCurrent ? "#FFFFFF" : isCompleted ? "#FFFFFF" : "#899770"}
-                      strokeWidth={isCurrent ? 6 : 4}
-                    />
+                      // Distribute horizontally if multiple stops in hall
+                      const pinX =
+                        totalInHall === 1
+                          ? spatial.cx
+                          : spatial.cx + (idx - (totalInHall - 1) / 2) * pinSpacing;
+                      const pinY = spatial.cy - 16;
 
-                    {/* Sequence number or checkmark */}
-                    <text
-                      x={pinX}
-                      y={pinY + (isCurrent ? 11 : 9)}
-                      textAnchor="middle"
-                      fill={isCurrent || isCompleted ? "#FFFFFF" : "#1A1918"}
-                      fontSize={isCurrent ? 30 : 24}
-                      fontWeight="bold"
-                      className="select-none font-sans"
-                    >
-                      {isCompleted ? "✓" : stopNumber}
-                    </text>
+                      return (
+                        <g
+                          key={`${stop.exhibit_id}-${originalIndex}`}
+                          className="cursor-pointer pointer-events-auto transition-transform hover:scale-110"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectStop?.(originalIndex);
+                            setSelectedInfo({
+                              hallName: spatial.name,
+                              hallNumber: spatial.number,
+                              stop,
+                              stopIndex: originalIndex,
+                              floor: spatial.floor,
+                            });
+                          }}
+                        >
+                          {/* Pulsing subtle ambient halo */}
+                          {isCurrent && (
+                            <rect
+                              x={pinX - 44}
+                              y={pinY - 44}
+                              width={88}
+                              height={88}
+                              fill="#899770"
+                              fillOpacity={0.2}
+                              className="animate-pulse"
+                              rx={0}
+                            />
+                          )}
 
-                    {/* Hall title plate below pin */}
-                    <rect
-                      x={pinX - (isCurrent ? 80 : 70)}
-                      y={pinY + (isCurrent ? 52 : 44)}
-                      width={isCurrent ? 160 : 140}
-                      height={isCurrent ? 30 : 26}
-                      rx={0}
-                      fill={isCurrent ? "#262626" : "#FFFFFF"}
-                      stroke={isCurrent ? "#899770" : isCompleted ? "#2E7D32" : "#D5CDC2"}
-                      strokeWidth={isCurrent ? 2 : 1.5}
-                      fillOpacity={0.96}
-                    />
-                    <text
-                      x={pinX}
-                      y={pinY + (isCurrent ? 72 : 62)}
-                      textAnchor="middle"
-                      fill={isCurrent ? "#FFFFFF" : "#1A1918"}
-                      fontSize={isCurrent ? 15 : 13}
-                      fontWeight="700"
-                      className="select-none font-sans"
-                    >
-                      Зал {spatial.number} · {isCompleted ? "Пройдено" : `Шаг ${stopNumber}`}
-                    </text>
+                          {isCurrent ? (
+                            // Current Stop: Distinct black container, olive top tag, double dashed outline
+                            <g>
+                              {/* Outer architectural double frame */}
+                              <rect
+                                x={pinX - 40}
+                                y={pinY - 40}
+                                width={80}
+                                height={80}
+                                fill="none"
+                                stroke="#262626"
+                                strokeWidth={2.5}
+                                strokeDasharray="6 3"
+                                rx={0}
+                              />
+                              {/* Main solid rectangular card */}
+                              <rect
+                                x={pinX - 34}
+                                y={pinY - 34}
+                                width={68}
+                                height={68}
+                                fill="#1A1918"
+                                stroke="#899770"
+                                strokeWidth={3}
+                                rx={0}
+                              />
+                              {/* Top banner tag */}
+                              <rect
+                                x={pinX - 34}
+                                y={pinY - 50}
+                                width={68}
+                                height={16}
+                                fill="#899770"
+                                rx={0}
+                              />
+                              <text
+                                x={pinX}
+                                y={pinY - 38}
+                                textAnchor="middle"
+                                fill="#FFFFFF"
+                                fontSize={10}
+                                fontWeight="900"
+                                letterSpacing="0.05em"
+                                className="select-none font-sans"
+                              >
+                                СЕЙЧАС
+                              </text>
+                              {/* High contrast step number */}
+                              <text
+                                x={pinX}
+                                y={pinY + 12}
+                                textAnchor="middle"
+                                fill="#FFFFFF"
+                                fontSize={30}
+                                fontWeight="900"
+                                className="select-none font-sans"
+                              >
+                                {stopNumber}
+                              </text>
+                            </g>
+                          ) : isCompleted ? (
+                            // Completed Stop: Green rectangular badge with explicit checkmark band
+                            <g>
+                              <rect
+                                x={pinX - 30}
+                                y={pinY - 30}
+                                width={60}
+                                height={60}
+                                fill="#2E7D32"
+                                stroke="#FFFFFF"
+                                strokeWidth={2}
+                                rx={0}
+                              />
+                              {/* Header band indicating completion */}
+                              <rect
+                                x={pinX - 30}
+                                y={pinY - 30}
+                                width={60}
+                                height={16}
+                                fill="#1B5E20"
+                                rx={0}
+                              />
+                              <text
+                                x={pinX}
+                                y={pinY - 18}
+                                textAnchor="middle"
+                                fill="#E8F5E9"
+                                fontSize={10}
+                                fontWeight="bold"
+                                className="select-none font-sans"
+                              >
+                                ✓ ПРОЙДЕН
+                              </text>
+                              <text
+                                x={pinX}
+                                y={pinY + 16}
+                                textAnchor="middle"
+                                fill="#FFFFFF"
+                                fontSize={24}
+                                fontWeight="bold"
+                                className="select-none font-sans"
+                              >
+                                {stopNumber}
+                              </text>
+                            </g>
+                          ) : (
+                            // Upcoming Stop: Crisp white museum badge with olive border and step tag
+                            <g>
+                              <rect
+                                x={pinX - 30}
+                                y={pinY - 30}
+                                width={60}
+                                height={60}
+                                fill="#FFFFFF"
+                                stroke="#899770"
+                                strokeWidth={2.5}
+                                rx={0}
+                              />
+                              {/* Header tag */}
+                              <rect
+                                x={pinX - 30}
+                                y={pinY - 30}
+                                width={60}
+                                height={16}
+                                fill="#F4F6F2"
+                                stroke="#DCE4D4"
+                                strokeWidth={1}
+                                rx={0}
+                              />
+                              <text
+                                x={pinX}
+                                y={pinY - 18}
+                                textAnchor="middle"
+                                fill="#5A6844"
+                                fontSize={10}
+                                fontWeight="bold"
+                                className="select-none font-sans"
+                              >
+                                ШАГ
+                              </text>
+                              <text
+                                x={pinX}
+                                y={pinY + 16}
+                                textAnchor="middle"
+                                fill="#1A1918"
+                                fontSize={24}
+                                fontWeight="bold"
+                                className="select-none font-sans"
+                              >
+                                {stopNumber}
+                              </text>
+                            </g>
+                          )}
+                        </g>
+                      );
+                    })}
+
+                    {/* Unified Single Hall Plate below pins (Zero collisions!) */}
+                    {(() => {
+                      const hasCurrent = clusterStops.some((s) => s.originalIndex === currentStopIndex);
+                      const allCompleted = clusterStops.every((s) => s.originalIndex < currentStopIndex);
+                      const stepNumbers = clusterStops.map((s) => s.originalIndex + 1).join(", ");
+                      const plateWidth = Math.max(160, totalInHall * pinSpacing + 28);
+                      const plateY = spatial.cy + 42;
+
+                      return (
+                        <g
+                          className="cursor-pointer pointer-events-auto"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const activeStop =
+                              clusterStops.find((s) => s.originalIndex === currentStopIndex) ||
+                              clusterStops[0];
+                            onSelectStop?.(activeStop.originalIndex);
+                            setSelectedInfo({
+                              hallName: spatial.name,
+                              hallNumber: spatial.number,
+                              stop: activeStop.stop,
+                              stopIndex: activeStop.originalIndex,
+                              floor: spatial.floor,
+                            });
+                          }}
+                        >
+                          <rect
+                            x={spatial.cx - plateWidth / 2}
+                            y={plateY - 14}
+                            width={plateWidth}
+                            height={28}
+                            rx={0}
+                            fill={hasCurrent ? "#262626" : "#FFFFFF"}
+                            stroke={hasCurrent ? "#899770" : allCompleted ? "#2E7D32" : "#D5CDC2"}
+                            strokeWidth={hasCurrent ? 2 : 1.5}
+                            fillOpacity={0.96}
+                          />
+                          <text
+                            x={spatial.cx}
+                            y={plateY + 4}
+                            textAnchor="middle"
+                            fill={hasCurrent ? "#FFFFFF" : "#1A1918"}
+                            fontSize={13}
+                            fontWeight="700"
+                            className="select-none font-sans"
+                          >
+                            Зал {spatial.number} · {totalInHall > 1 ? `Шаги ${stepNumbers}` : `Шаг ${stepNumbers}`}
+                          </text>
+                        </g>
+                      );
+                    })()}
                   </g>
                 );
               })}
@@ -854,9 +1129,9 @@ export function InteractiveMap({
 
         {/* 4. Rich Interactive Popover Card for Selected Hall / Stop */}
         {selectedInfo && (
-          <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:max-w-sm bg-white/98 backdrop-blur-md border border-[#E3DDD4] p-3.5 shadow-xl z-20 text-xs">
+          <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:max-w-md bg-white/98 backdrop-blur-md border border-[#E3DDD4] p-3.5 shadow-xl z-20 text-xs">
             <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1.5 flex-1 min-w-0">
+              <div className="space-y-2 flex-1 min-w-0">
                 {/* Header status */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="font-bold text-[#1A1918] bg-[#F4F6F2] text-[#5A6844] px-2 py-0.5 border border-[#DCE4D4]">
@@ -876,6 +1151,53 @@ export function InteractiveMap({
                 <div className="font-serif text-sm font-bold text-[#1A1918] leading-tight">
                   {selectedInfo.hallName}
                 </div>
+
+                {/* Multi-stop switcher if hall contains multiple artworks */}
+                {(() => {
+                  const matchingCluster = hallClusters.find(
+                    (c) => c.spatial.number === selectedInfo.hallNumber
+                  );
+                  if (!matchingCluster || matchingCluster.stops.length <= 1) return null;
+
+                  return (
+                    <div className="pt-1.5 pb-1 border-t border-[#E8E3DC]">
+                      <div className="text-[11px] text-[#7A756D] font-medium mb-1.5">
+                        Шедевры в этом зале ({matchingCluster.stops.length}):
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {matchingCluster.stops.map(({ stop: s, originalIndex: idx }) => {
+                          const isCur = idx === currentStopIndex;
+                          const isSel = idx === selectedInfo.stopIndex;
+                          return (
+                            <button
+                              key={`pill-${idx}`}
+                              type="button"
+                              onClick={() => {
+                                onSelectStop?.(idx);
+                                setSelectedInfo({
+                                  hallName: matchingCluster.spatial.name,
+                                  hallNumber: matchingCluster.spatial.number,
+                                  stop: s,
+                                  stopIndex: idx,
+                                  floor: matchingCluster.spatial.floor,
+                                });
+                              }}
+                              className={`px-2 py-1 text-[11px] font-semibold border transition-all cursor-pointer ${
+                                isSel
+                                  ? "bg-[#899770] text-white border-[#899770]"
+                                  : isCur
+                                  ? "bg-[#F4F6F2] text-[#5A6844] border-[#899770]"
+                                  : "bg-[#FAFAFA] text-[#262626] border-[#D5CDC2] hover:bg-[#F0ECE1]"
+                              }`}
+                            >
+                              Шаг {idx + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Artwork snippet if hall is an active stop */}
                 {selectedInfo.stop && (
@@ -938,16 +1260,16 @@ export function InteractiveMap({
         {/* Badges Legend */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[#5C5954]">
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 bg-[#899770] inline-block border border-white shadow-2xs" />
-            <span className="font-semibold text-[#1A1918]">Текущий шедевр</span>
+            <span className="w-3.5 h-3.5 bg-[#1A1918] border border-[#899770] inline-block shadow-2xs" />
+            <span className="font-semibold text-[#1A1918]">Текущая остановка (СЕЙЧАС)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 bg-[#2E7D32] inline-block border border-white shadow-2xs" />
-            <span>Пройденная точка</span>
+            <span className="w-3.5 h-3.5 bg-[#2E7D32] border border-white inline-block shadow-2xs" />
+            <span>Пройденная точка (✓)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 bg-[#FAF8F5] border border-[#899770] inline-block shadow-2xs" />
-            <span>Предстоящая</span>
+            <span className="w-3.5 h-3.5 bg-[#FFFFFF] border border-[#899770] inline-block shadow-2xs" />
+            <span>Предстоящая (ШАГ)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 bg-white border border-[#ADA589] inline-block text-[9px] font-bold text-center leading-3">
@@ -968,7 +1290,7 @@ export function InteractiveMap({
         {/* Navigation & Controls Hint */}
         <div className="text-[11px] text-[#726E67] leading-relaxed pt-1.5 border-t border-[#EAE5DF] flex flex-wrap items-center justify-between gap-1">
           <span>
-            💡 <strong>Навигация:</strong> перетаскивайте карту мышью или пальцем; колесико или щипок — масштаб. Нажмите на любой зал для деталей.
+            💡 <strong>Навигация:</strong> перетаскивайте карту мышью или жестом; масштаб — кнопками +/− или щипком. Порядок экскурсии обозначен номерами шагов на маркерах залов.
           </span>
           <span className="font-mono text-[10px] text-[#8C867E]">
             ГМИИ им. А.С. Пушкина · Волхонка, 12
