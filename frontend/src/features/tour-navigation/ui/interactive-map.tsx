@@ -737,7 +737,7 @@ export function InteractiveMap({
               {/* Staircase transition indicator if next stop is on the other floor */}
               {nextFloorTransition && (
                 <g
-                  className="cursor-pointer pointer-events-auto transition-transform hover:scale-105"
+                  className="cursor-pointer pointer-events-auto transition-opacity hover:opacity-85"
                   onClick={() => {
                     setSelectedFloor(nextFloorTransition.targetFloor);
                     handleResetView();
@@ -885,7 +885,7 @@ export function InteractiveMap({
                       return (
                         <g
                           key={`${stop.exhibit_id}-${originalIndex}`}
-                          className="cursor-pointer pointer-events-auto transition-transform hover:scale-110"
+                          className="cursor-pointer pointer-events-auto transition-opacity hover:opacity-85"
                           onClick={(e) => {
                             e.stopPropagation();
                             onSelectStop?.(originalIndex);
