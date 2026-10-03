@@ -5,7 +5,7 @@ interface MuseumHeaderProps {
 
 export function MuseumHeader({ onReset, showReset = false }: MuseumHeaderProps) {
   return (
-    <header className="border-b border-[#E8E3DC] bg-[#FAF8F5]/95 backdrop-blur-md sticky top-0 z-40">
+    <header className="border-b border-[#9E9576] bg-[#ADA589] sticky top-0 z-40 shadow-xs">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
         {/* Brand identity */}
         <div
@@ -23,24 +23,23 @@ export function MuseumHeader({ onReset, showReset = false }: MuseumHeaderProps) 
                 }
               : undefined
           }
-          className={`flex items-center gap-2.5 sm:gap-3 select-none rounded-lg p-1 -ml-1 transition-colors ${
+          className={`flex items-center gap-2.5 sm:gap-3 select-none p-1 -ml-1 transition-colors ${
             showReset
-              ? "cursor-pointer hover:bg-black/5 focus:outline-hidden focus:ring-2 focus:ring-[#9E2A2B]"
+              ? "cursor-pointer hover:bg-black/5 focus:outline-hidden focus:ring-2 focus:ring-[#000000]"
               : ""
           }`}
         >
-          <div
-            className="w-8 h-8 rounded-lg bg-[#1A1918] text-[#FAF8F5] flex items-center justify-center font-serif text-lg font-bold tracking-tighter shrink-0"
-            aria-hidden="true"
-          >
-            П
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-widest text-[#726E67] font-semibold leading-tight">
-              ГМИИ им. А.С. Пушкина
-            </div>
-            <div className="font-serif text-sm sm:text-base font-bold text-[#1A1918] leading-tight">
+          <img
+            src="/images/logoPM-sign_text_26.svg"
+            alt="ГМИИ им. А.С. Пушкина"
+            className="h-8 sm:h-9 w-auto object-contain shrink-0"
+          />
+          <div className="border-l border-[#8E866C] pl-2.5 sm:pl-3 ml-0.5">
+            <div className="text-[10px] uppercase tracking-wider text-[#262626] font-bold leading-tight">
               Персональный AI-гид
+            </div>
+            <div className="font-serif text-xs sm:text-sm font-bold text-[#000000] leading-tight">
+              Главное здание
             </div>
           </div>
         </div>
@@ -52,7 +51,7 @@ export function MuseumHeader({ onReset, showReset = false }: MuseumHeaderProps) 
               type="button"
               onClick={onReset}
               aria-label="Создать новый маршрут"
-              className="text-xs text-[#5C5954] hover:text-[#9E2A2B] px-3 py-2 min-h-[38px] rounded-lg border border-[#E3DDD4] bg-white transition-colors cursor-pointer font-medium hover:border-[#9E2A2B] focus:outline-hidden focus:ring-2 focus:ring-[#9E2A2B]"
+              className="text-xs text-[#262626] hover:text-[#000000] px-3 py-2 min-h-[38px] border border-[#8E866C] bg-white transition-colors cursor-pointer font-semibold hover:border-[#000000] focus:outline-hidden focus:ring-2 focus:ring-[#000000]"
             >
               Новый маршрут
             </button>
@@ -62,7 +61,7 @@ export function MuseumHeader({ onReset, showReset = false }: MuseumHeaderProps) 
             target="_blank"
             rel="noreferrer"
             aria-label="Официальный сайт Пушкинского музея (откроется в новом окне)"
-            className="hidden sm:inline-flex text-xs text-[#726E67] hover:text-[#1A1918] px-2 py-1.5 transition-colors items-center gap-1"
+            className="hidden sm:inline-flex text-xs font-semibold text-[#262626] hover:text-[#000000] px-2 py-1.5 transition-colors items-center gap-1"
           >
             <span>Официальный сайт</span>
             <span aria-hidden="true">↗</span>

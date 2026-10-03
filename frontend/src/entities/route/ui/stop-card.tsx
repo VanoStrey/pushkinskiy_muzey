@@ -22,31 +22,31 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
           onClick?.();
         }
       }}
-      className={`group relative text-left bg-white border rounded-xl p-3.5 sm:p-4 transition-all shadow-xs hover:shadow-sm cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#9E2A2B] ${
+      className={`group relative text-left bg-white border p-3.5 sm:p-4 transition-all shadow-xs hover:shadow-sm cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
         isCompleted
           ? "border-[#D6E5D8] bg-[#FBFDFB]"
-          : "border-[#E3DDD4] hover:border-[#9E2A2B]/40"
+          : "border-[#E5E1D8] hover:border-[#899770]"
       }`}
     >
       <div className="flex gap-3.5 sm:gap-4 items-start">
         {/* Step number badge */}
         <div className="shrink-0 flex flex-col items-center">
           <span
-            className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${
+            className={`w-7 h-7 flex items-center justify-center text-xs font-semibold ${
               isCompleted
                 ? "bg-[#2E7D32] text-white"
-                : "bg-[#1A1918] text-white group-hover:bg-[#9E2A2B] transition-colors"
+                : "bg-[#262626] text-white group-hover:bg-[#899770] transition-colors"
             }`}
           >
             {isCompleted ? "✓" : stop.position}
           </span>
-          <span className="text-[10px] text-[#8C867E] mt-1 font-mono uppercase tracking-wider">
+          <span className="text-[10px] text-[#7A756D] mt-1 font-mono uppercase tracking-wider">
             шаг
           </span>
         </div>
 
         {/* Thumbnail */}
-        <div className="w-20 h-24 sm:w-22 sm:h-26 shrink-0 rounded-lg overflow-hidden border border-[#E8E3DC]">
+        <div className="w-20 h-24 sm:w-22 sm:h-26 shrink-0 overflow-hidden border border-[#E5E1D8]">
           <ArtworkImage
             src={stop.image_url}
             alt={stop.title}
@@ -60,24 +60,24 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
         {/* Text information */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <h4 className="font-serif text-base sm:text-lg font-bold text-[#1A1918] group-hover:text-[#9E2A2B] transition-colors leading-snug line-clamp-1">
+            <h3 className="font-serif text-base sm:text-lg font-bold text-[#000000] group-hover:text-[#899770] transition-colors leading-snug line-clamp-2">
               {stop.title}
-            </h4>
+            </h3>
             {isCompleted && (
-              <span className="shrink-0 text-[10px] bg-[#EEF7ED] text-[#2E7D32] font-semibold px-2 py-0.5 rounded-full border border-[#C8E6C9]">
+              <span className="shrink-0 text-[10px] bg-[#EEF7ED] text-[#2E7D32] font-semibold px-2 py-0.5 border border-[#C8E6C9]">
                 Пройдено
               </span>
             )}
           </div>
 
-          <p className="text-xs text-[#5C5954] mt-0.5 font-sans font-medium line-clamp-1">
+          <p className="text-xs text-[#262626] mt-0.5 font-sans font-medium line-clamp-1">
             {stop.artist || "Автор не указан в данных музея"}, {stop.date || "Дата не указана в данных музея"}
           </p>
 
           {stop.location && (
-            <p className="text-[11px] text-[#8C867E] mt-1 flex items-center gap-1 line-clamp-1">
+            <p className="text-[11px] text-[#7A756D] mt-1 flex items-center gap-1 line-clamp-1">
               <svg
-                className="w-3 h-3 text-[#9E2A2B] shrink-0"
+                className="w-3 h-3 text-[#899770] shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -94,10 +94,12 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
             </p>
           )}
 
-          <div className="mt-2 bg-[#FAF7F2] border-l-2 border-[#9E2A2B] px-2.5 py-1.5 rounded-r text-[11px] text-[#474440] leading-relaxed line-clamp-2">
-            <span className="font-medium text-[#1A1918]">В вашем маршруте: </span>
-            {stop.personalization_reason}
-          </div>
+          {stop.personalization_reason && stop.personalization_reason.trim() !== "" && (
+            <div className="mt-2 bg-[#F4F6F2] border-l-2 border-[#899770] px-2.5 py-1.5 text-[11px] text-[#262626] leading-relaxed line-clamp-2">
+              <span className="font-bold text-[#5A6844]">В вашем маршруте: </span>
+              {stop.personalization_reason}
+            </div>
+          )}
         </div>
       </div>
     </div>
