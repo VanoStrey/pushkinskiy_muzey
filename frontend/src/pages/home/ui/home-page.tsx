@@ -88,15 +88,6 @@ export function HomePage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showResetConfirm]);
 
-  // Dim the room while the visitor is walking the route: a hall is lit lower
-  // than a lobby, and the reproductions carry better against a dark ground.
-  useEffect(() => {
-    document.documentElement.dataset.stage = stage === "tour" ? "gallery" : "lobby";
-    return () => {
-      document.documentElement.dataset.stage = "lobby";
-    };
-  }, [stage]);
-
   // Automatically persist tour state to localStorage on progress updates
   useEffect(() => {
     if (!isRestoredRef.current) return;

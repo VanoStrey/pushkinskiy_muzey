@@ -80,23 +80,6 @@
   --shadow-frame: 10px 14px 28px rgba(86, 76, 58, 0.22);
 }
 
-/* "Gallery" ground for the walking stage: dimmed warm light, like a hall. */
-:root[data-stage="gallery"] {
-  --ground: #2b2721;
-  --surface: #332e27;
-  --sunken: #221f1a;
-  --foreground: #f4efe6;
-  --muted: #bdb4a5;
-  --faint: #938c80;
-  --shadow-light: #413b32;
-  --shadow-dark: #17150f;
-  --accent: #a8b88a;
-  --accent-hover: #bccb9f;
-  --accent-ink: #e6eddb;
-  --gilt-soft: #4a3c1d;
-  --shadow-frame: 12px 16px 36px rgba(0, 0, 0, 0.55);
-}
-
 @theme inline {
   --color-header-khaki: var(--header-khaki);
   --color-header-khaki-hover: var(--header-khaki-hover);
