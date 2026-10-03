@@ -320,3 +320,66 @@ def test_description_is_built_from_catalog_fields_and_differs_per_stop(monkeypat
         # Every fact in the description comes from the catalog record itself.
         if exhibit.get("inventory_number"):
             assert exhibit["inventory_number"] in stop["description"]
+
+
+def test_tour_endpoint_with_break_disabled(monkeypatch):
+    monkeypatch.setattr(route_generator, "settings", Settings(yandex_folder_id=""))
+    req = _request_body()
+    req["include_break"] = False
+    with TestClient(fastapi_app) as client:
+        response = client.post("/api/route/generate", json=req)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["has_break"] is False
+    assert payload["break_after_stop"] is None
+    assert payload["break_info"] is None
+
+
+def test_tour_endpoint_preserves_topological_floor_order(monkeypatch):
+    """Stops must form a walkable sequence: grouped by building, and within a
+    building the floors must not alternate back and forth.
+
+    The route pool spans several buildings (the impressionists live in the
+    Gallery, not the Main Building), and those are separate addresses — so the
+    enfilade invariant holds per building, not across the whole route.
+    """
+    monkeypatch.setattr(route_generator, "settings", Settings(yandex_folder_id=""))
+    req = {
+        "interests": ["шедевры", "живопись", "скульптура"],
+        "duration_minutes": 120,
+        "group_type": "solo",
+        "difficulty": "amateur",
+        "style": "story",
+        "include_break": True,
+    }
+    with TestClient(fastapi_app) as client:
+        response = client.post("/api/route/generate", json=req)
+
+    assert response.status_code == 200
+    payload = response.json()
+    stops = payload["stops"]
+    assert len(stops) >= 4
+
+    # A building is never left and re-entered later in the route.
+    buildings = [stop["building_id"] for stop in stops]
+    assert buildings == sorted(buildings, key=lambda value: (value is None, value or "")), (
+        f"Stops of one building must stay together: {buildings}"
+    )
+
+    # Within each building the floors must be non-decreasing (never 1 -> 2 -> 1).
+    for building_id in set(buildings):
+        floors = [
+            int(stop["floor_number"] or 1)
+            for stop in stops
+            if stop["building_id"] == building_id
+        ]
+        assert floors == sorted(floors), f"Floors alternate in building {building_id}: {floors}"
+
+    # If the route transitions floors, the break goes right before the transition.
+    all_floors = [int(stop["floor_number"] or 1) for stop in stops]
+    transition_indices = [
+        i + 1 for i in range(len(all_floors) - 1) if all_floors[i] != all_floors[i + 1]
+    ]
+    if transition_indices and payload["has_break"]:
+        assert payload["break_after_stop"] == transition_indices[0]

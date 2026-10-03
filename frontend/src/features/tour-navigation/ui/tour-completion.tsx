@@ -92,7 +92,15 @@ export function TourCompletion({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {route.stops.map((stop, idx) => {
             const hasAnswer = userAnswers[idx] !== undefined;
-            const isCorrect = hasAnswer && Boolean(stop.challenge && stop.challenge.type === "question" && userAnswers[idx] === stop.challenge.correct_option);
+            const isObservation = stop.challenge?.type === "observation";
+            const isCorrect =
+              hasAnswer &&
+              Boolean(
+                stop.challenge &&
+                  stop.challenge.type === "question" &&
+                  userAnswers[idx] === stop.challenge.correct_option
+              );
+            const isDone = hasAnswer && (isObservation || isCorrect);
 
             return (
               <div
@@ -122,11 +130,17 @@ export function TourCompletion({
                     {hasAnswer && (
                       <span
                         className={`absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white shadow-xs ${
-                          isCorrect ? "bg-[#2E7D32]" : "bg-[#8D4B00]"
+                          isDone ? "bg-[#2E7D32]" : "bg-[#8D4B00]"
                         }`}
-                        title={isCorrect ? "Загадка разгадана верно" : "Загадка пройдена"}
+                        title={
+                          isObservation
+                            ? "Задание выполнено"
+                            : isCorrect
+                            ? "Загадка разгадана верно"
+                            : "Загадка пройдена"
+                        }
                       >
-                        {isCorrect ? "✓" : "•"}
+                        {isDone ? "✓" : "•"}
                       </span>
                     )}
                   </div>

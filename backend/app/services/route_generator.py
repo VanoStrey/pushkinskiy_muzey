@@ -297,6 +297,76 @@ def generate_route(
     return stops
 
 
+# Canonical topological walking sequence for Main Building (116).
+# Preserves enfilade continuity, clusters multiple exhibits in the same hall together,
+# and avoids back-and-forth stair climbing between floors.
+HALL_TOPOLOGICAL_ORDER_MAIN: dict[str, tuple[int, int]] = {
+    # Floor 1 (from Entrance clockwise/around courtyards)
+    "186": (1, 10),   # Зал 1 (Египет)
+    "187": (1, 20),   # Зал 2 (Ближний Восток)
+    "188": (1, 30),   # Зал 3 (Троя)
+    "189": (1, 40),   # Зал 4 (Античность)
+    "190": (1, 50),   # Зал 5 (Причерноморье)
+    "191": (1, 60),   # Зал 6 (Эллинистический/Римский Египет, Копты)
+    "192": (1, 70),   # Зал 7 (Византия, ранняя Италия)
+    "196": (1, 80),   # Зал 11 (Голландия XVII в.)
+    "195": (1, 90),   # Зал 10 (Рембрандт)
+    "194": (1, 100),  # Зал 9 (Фландрия)
+    "193": (1, 110),  # Зал 8 (Германия/Нидерланды XV–XVI)
+    "197": (1, 120),  # Зал 14 (Греческий дворик)
+    "198": (1, 130),  # Зал 15 (Итальянский дворик / перерыв)
+
+    # Floor 2 (from Grand Staircase through Classical sculpture, White Hall, French & Baroque art)
+    "199": (2, 10),   # Зал 16 (Древняя Греция)
+    "200": (2, 20),   # Зал 16a (Эгейский мир)
+    "213": (2, 30),   # Зал 29 (Микеланджело)
+    "212": (2, 40),   # Зал 28 (Итальянская скульптура XV в.)
+    "211": (2, 50),   # Зал 27 (Скульптура Германии/Нидерландов)
+    "210": (2, 60),   # Зал 26 (Средние века)
+    "209": (2, 70),   # Зал 25 (Древний Рим)
+    "208": (2, 80),   # Зал 24 (Поздняя классика)
+    "214": (2, 90),   # Зал 30 (Белый зал)
+    "207": (2, 100),  # Зал 23 (Франция конец XVIII – XIX)
+    "206": (2, 110),  # Зал 22 (Франция середина XVIII)
+    "205": (2, 120),  # Зал 21 (Франция XVII)
+    "204": (2, 130),  # Зал 20 (Выставочный)
+    "203": (2, 140),  # Зал 19 (Выставочный/галерея)
+    "202": (2, 150),  # Зал 18 (Испания и Италия XVII в.)
+    "201": (2, 160),  # Зал 17 (Итальянское барокко)
+}
+
+
+def get_exhibit_topological_key(exhibit: dict[str, Any]) -> tuple[str, int, int, str]:
+    """Returns (building, floor, hall_seq, exhibit_id) for a walkable sequence.
+
+    The building leads the key because the route pool spans several buildings —
+    the Main Building on Volkhonka 12 and the Gallery of European and American
+    Art are separate addresses, so all stops of one building have to stay
+    together before the visitor walks to the next one. Within a building the
+    hall order keeps the enfilade continuity and clusters one hall's exhibits.
+    """
+    building_id = str(exhibit.get("building_id") or "")
+    # Objects without a published building go last: the visitor has to ask at
+    # the desk where they are, which is a poor way to open a route.
+    building_key = building_id or "zzz"
+    hall = exhibit.get("hall") or get_hall_by_id(building_id, exhibit.get("hall_id") or "") or {}
+    hall_id = str(hall.get("id") or exhibit.get("hall_id") or "")
+    if hall_id in HALL_TOPOLOGICAL_ORDER_MAIN:
+        floor, seq = HALL_TOPOLOGICAL_ORDER_MAIN[hall_id]
+        return (building_key, floor, seq, str(exhibit.get("id", "")))
+
+    floor_num = 1
+    try:
+        floor_num = int(hall.get("floor_number") or 1)
+    except (ValueError, TypeError):
+        pass
+
+    num_str = str(hall.get("number") or "")
+    digits = "".join(c for c in num_str if c.isdigit())
+    hall_num = int(digits) if digits else 99
+    return (building_key, floor_num, hall_num, str(exhibit.get("id", "")))
+
+
 def select_candidate_exhibits(
     interests: list[str],
     target_count: int,
@@ -473,8 +543,15 @@ def generate_personalized_route(request: RouteGenerateRequest) -> RouteGenerateR
         fallback_on_error=True,
     )
     by_id = {str(item["id"]): item for item in candidates}
+
+    # Sort generated stops topologically so visitors experience a smooth, coherent enfilade journey
+    generated_sorted = sorted(
+        generated,
+        key=lambda item: get_exhibit_topological_key(by_id[item["id"]])
+    )
+
     stops: list[Stop] = []
-    for position, item in enumerate(generated, start=1):
+    for position, item in enumerate(generated_sorted, start=1):
         exhibit = by_id[item["id"]]
         exhibit_building_id = exhibit.get("building_id") or ""
         hall = exhibit.get("hall") or get_hall_by_id(exhibit_building_id, exhibit.get("hall_id", "")) or {}
@@ -548,7 +625,16 @@ def generate_personalized_route(request: RouteGenerateRequest) -> RouteGenerateR
 
     if request.include_break and len(stops) >= 3:
         has_break = True
-        break_after_stop = len(stops) // 2
+        # If route spans two floors, place break right before transitioning floors.
+        # An unpublished floor counts as the first one rather than as a change:
+        # part of the catalog has no floor, and comparing those raw values put
+        # the break right after the opening stop.
+        floors = [int(stop.floor_number or 1) for stop in stops]
+        floor_transition_idx = next(
+            (i + 1 for i in range(len(floors) - 1) if floors[i] != floors[i + 1]),
+            None,
+        )
+        break_after_stop = floor_transition_idx if floor_transition_idx is not None else len(stops) // 2
         break_info = BreakInfo(
             title="Перерыв на отдых и кофе",
             location="Итальянский дворик (Зал 15) / Цокольный этаж",

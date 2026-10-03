@@ -1,9 +1,9 @@
 # SourceCraft CI/CD. Setup: README.md, "Деплой в облако".
 #
 # Deploy needs no repository secrets and no edits to this file. Everything
-# comes from the service connection `default-service-connection` (folder +
-# service account, no stored keys). Its service account needs the `editor`
-# role on the folder. On every push to main the deploy task creates any
+# comes from the `it-prodlenka-ci-15` service connection (folder + service
+# account, no stored keys). Its service account needs the `editor` role on
+# the folder. On every push to main the deploy task creates any
 # missing resource (YDB Serverless, Cloud Function, bucket, API Gateway) and
 # updates the rest. The same service account runs the function and the gateway.
 
@@ -15,7 +15,7 @@ on:
 
 tokens:
   yc:
-    service_connection: default-service-connection-xx
+    service_connection: it-prodlenka-ci-15
     scope: repo
 
 workflows:
