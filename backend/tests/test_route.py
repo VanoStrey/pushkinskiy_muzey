@@ -119,3 +119,46 @@ def test_tour_endpoint_with_visitor_comment(monkeypatch):
     assert len(payload["stops"]) >= 4
     # Fallback reason reflects visitor comment
     assert any("саркофаги" in stop["personalization_reason"] or "комментарию" in stop["personalization_reason"] for stop in payload["stops"])
+
+
+def test_tour_endpoint_with_break_disabled(monkeypatch):
+    monkeypatch.setattr(route_generator, "settings", Settings(yandex_folder_id=""))
+    req = _request_body()
+    req["include_break"] = False
+    with TestClient(fastapi_app) as client:
+        response = client.post("/api/route/generate", json=req)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["has_break"] is False
+    assert payload["break_after_stop"] is None
+    assert payload["break_info"] is None
+
+
+def test_tour_endpoint_preserves_topological_floor_order(monkeypatch):
+    monkeypatch.setattr(route_generator, "settings", Settings(yandex_folder_id=""))
+    req = {
+        "interests": ["шедевры", "живопись", "скульптура"],
+        "duration_minutes": 120,
+        "group_type": "solo",
+        "difficulty": "amateur",
+        "style": "story",
+        "include_break": True,
+    }
+    with TestClient(fastapi_app) as client:
+        response = client.post("/api/route/generate", json=req)
+
+    assert response.status_code == 200
+    payload = response.json()
+    stops = payload["stops"]
+    assert len(stops) >= 4
+
+    # Floors must be non-decreasing (e.g. all 1s then 2s, never 1 -> 2 -> 1)
+    floors = [int(s["floor_number"] or 1) for s in stops]
+    assert floors == sorted(floors), f"Floors should not alternate back and forth: {floors}"
+
+    # If route transitions floors, break should be placed before the transition
+    transition_indices = [i + 1 for i in range(len(floors) - 1) if floors[i] != floors[i + 1]]
+    if transition_indices and payload["has_break"]:
+        assert payload["break_after_stop"] == transition_indices[0]
+

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { RouteGenerateRequest, RouteGenerateResponse } from "@/entities/route";
-import { StopCard } from "@/entities/route";
+import type { RouteGenerateRequest, RouteGenerateResponse, TourStage } from "@/entities/route";
+import { StopCard, clearTourState, loadTourState, saveTourState } from "@/entities/route";
 import { RoutePreferencesForm, requestGenerateRoute } from "@/features/generate-route";
 import { InteractiveMap, StopViewer, TourCompletion } from "@/features/tour-navigation";
 import { MuseumHeader } from "@/widgets/museum-header";
@@ -9,28 +9,60 @@ type ViewStage = "preferences" | "generating" | "overview" | "tour" | "completed
 
 const GENERATING_STEPS = [
   "Анализируем постоянную экспозицию на Волхонке...",
-  "Подбираем шедевры для глубокого погружения (3+ часа)...",
+  "Подбираем шедевры постоянной экспозиции под выбранное время...",
   "Готовим персональные истории и задания по сведениям каталога...",
   "Сверяем залы и планируем комфортные паузы...",
 ];
 
 export function HomePage() {
-  const [stage, setStage] = useState<ViewStage>("preferences");
-  const [preferences, setPreferences] = useState<RouteGenerateRequest>({
-    interests: ["импрессионизм", "загадки"],
-    duration_minutes: 180,
-    group_type: "friends",
-    difficulty: "amateur",
-    style: "quest",
+  // Synchronously restore initial state from localStorage to prevent flash of empty form or race conditions
+  const [initialTourState] = useState(() => loadTourState());
+
+  const [stage, setStage] = useState<ViewStage>(() => {
+    if (initialTourState) {
+      if (
+        initialTourState.stage === "tour" ||
+        initialTourState.stage === "overview" ||
+        initialTourState.stage === "completed"
+      ) {
+        if (initialTourState.route && initialTourState.route.stops?.length > 0) {
+          return initialTourState.stage;
+        }
+      }
+    }
+    return "preferences";
   });
-  const [route, setRoute] = useState<RouteGenerateResponse | null>(null);
-  const [currentStopIndex, setCurrentStopIndex] = useState<number>(0);
-  const [userAnswers, setUserAnswers] = useState<Record<number, number | null>>({});
+
+  const [preferences, setPreferences] = useState<RouteGenerateRequest | null>(
+    () => initialTourState?.preferences ?? null
+  );
+
+  const [route, setRoute] = useState<RouteGenerateResponse | null>(
+    () => initialTourState?.route ?? null
+  );
+
+  const [currentStopIndex, setCurrentStopIndex] = useState<number>(() => {
+    const stopsCount = initialTourState?.route?.stops?.length ?? 0;
+    if (stopsCount > 0 && initialTourState?.currentStopIndex !== undefined) {
+      return Math.max(0, Math.min(initialTourState.currentStopIndex, stopsCount - 1));
+    }
+    return 0;
+  });
+
+  const [userAnswers, setUserAnswers] = useState<Record<number, number | null>>(
+    () => initialTourState?.userAnswers ?? {}
+  );
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [generatingStepIndex, setGeneratingStepIndex] = useState(0);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isMapOpenMobile, setIsMapOpenMobile] = useState(false);
+  const [dismissedBreakIndex, setDismissedBreakIndex] = useState<number | null>(
+    () => initialTourState?.dismissedBreakIndex ?? null
+  );
+
+  const isRestoredRef = useRef(true);
 
   // Guards against race conditions and stale background responses
   const activeRequestIdRef = useRef<number>(0);
@@ -55,6 +87,27 @@ export function HomePage() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showResetConfirm]);
+
+  // Automatically persist tour state to localStorage on progress updates
+  useEffect(() => {
+    if (!isRestoredRef.current) return;
+    if (stage === "generating") return; // Never save temporary loading state
+
+    // If on preferences stage with no route and no preferences, clean storage
+    if (stage === "preferences" && !preferences && !route) {
+      clearTourState();
+      return;
+    }
+
+    saveTourState({
+      stage: stage as TourStage,
+      preferences,
+      route,
+      currentStopIndex,
+      userAnswers,
+      dismissedBreakIndex,
+    });
+  }, [stage, preferences, route, currentStopIndex, userAnswers, dismissedBreakIndex]);
 
   const handleGenerate = async (prefs: RouteGenerateRequest) => {
     // Prevent accidental parallel duplicate requests
@@ -154,11 +207,14 @@ export function HomePage() {
     activeRequestIdRef.current = 0;
     setIsGenerating(false);
     setShowResetConfirm(false);
+    clearTourState();
     setStage("preferences");
     setRoute(null);
     setCurrentStopIndex(0);
     setUserAnswers({});
     setErrorMessage(null);
+    setPreferences(null);
+    setDismissedBreakIndex(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -188,7 +244,7 @@ export function HomePage() {
         {errorMessage && (
           <div
             role="alert"
-            className="mb-6 p-4 rounded-2xl bg-[#FDF2F2] border border-[#F5C6CB] text-[#721C24] flex items-start justify-between gap-3 text-sm shadow-xs animate-in fade-in"
+            className="mb-6 p-4 bg-[#FDF2F2] border border-[#F5C6CB] text-[#721C24] flex items-start justify-between gap-3 text-sm shadow-xs animate-in fade-in"
           >
             <div className="flex items-start gap-3">
               <span className="text-xl shrink-0" aria-hidden="true">⚠️</span>
@@ -200,8 +256,8 @@ export function HomePage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
-                disabled={isGenerating}
-                onClick={() => handleGenerate(preferences)}
+                disabled={isGenerating || !preferences}
+                onClick={() => preferences && handleGenerate(preferences)}
                 className="px-3 py-1.5 bg-[#899770] hover:bg-[#75835C] disabled:bg-[#C4BCB1] text-white text-xs font-medium transition-colors cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
               >
                 Повторить
@@ -221,7 +277,7 @@ export function HomePage() {
         {/* 1. PREFERENCES STAGE */}
         {stage === "preferences" && (
           <RoutePreferencesForm
-            initialValues={preferences}
+            initialValues={preferences ?? undefined}
             onSubmit={handleGenerate}
             isLoading={isGenerating}
           />
@@ -383,13 +439,13 @@ export function HomePage() {
                           isCompleted={userAnswers[idx] !== undefined}
                         />
                         {route.has_break && route.break_after_stop === idx + 1 && (
-                          <div className="bg-[#FAF5F0] border-2 border-dashed border-[#C69214] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-2">
+                          <div className="bg-[#FAF5F0] border-2 border-dashed border-[#C69214] p-4 sm:p-5 shadow-2xs space-y-2">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div className="flex items-center gap-2 text-[#8D4B00] font-bold text-sm">
                                 <span className="text-base" aria-hidden="true">☕</span>
                                 <span>{route.break_info?.title || "Перерыв на отдых"} (~{route.break_info?.duration_minutes || 15} мин)</span>
                               </div>
-                              <span className="text-[11px] font-semibold text-[#8D4B00] bg-[#FFF8EE] px-2.5 py-1 rounded-md border border-[#E8D4B8]">
+                              <span className="text-[11px] font-semibold text-[#8D4B00] bg-[#FFF8EE] px-2.5 py-1 border border-[#E8D4B8]">
                                 {route.break_info?.location || "Итальянский дворик (Зал 15)"}
                               </span>
                             </div>
@@ -443,19 +499,40 @@ export function HomePage() {
         {stage === "tour" && route && stops[currentStopIndex] && (
           <div className="space-y-4">
             {/* Break mid-tour alert if current stop is after break */}
-            {route.has_break && route.break_after_stop === currentStopIndex && (
-              <div className="max-w-2xl lg:max-w-none mx-auto bg-[#FAF5F0] border border-[#C69214] rounded-xl p-3.5 sm:p-4 text-xs text-[#8D4B00] flex items-start gap-3 shadow-2xs">
-                <span className="text-lg shrink-0" aria-hidden="true">☕</span>
-                <div className="space-y-1">
-                  <div className="font-bold text-sm text-[#8D4B00]">
-                    Экватор экскурсии: рекомендуем паузу в Итальянском дворике (Зал 15)
+            {route.has_break &&
+              route.break_after_stop === currentStopIndex &&
+              dismissedBreakIndex !== currentStopIndex && (
+                <div className="max-w-2xl lg:max-w-none mx-auto bg-[#FAF5F0] border border-[#C69214] p-3.5 sm:p-4 text-xs text-[#8D4B00] flex flex-col sm:flex-row items-start justify-between gap-3 shadow-2xs animate-in fade-in">
+                  <div className="flex items-start gap-3">
+                    <span className="text-lg shrink-0" aria-hidden="true">☕</span>
+                    <div className="space-y-1">
+                      <div className="font-bold text-sm text-[#8D4B00]">
+                        Рекомендуемая пауза на отдых: Итальянский дворик (Зал 15)
+                      </div>
+                      <p className="text-[#5C5954] leading-relaxed">
+                        {route.break_info?.note ||
+                          "Буфет в цоколе Главного здания временно закрыт на техобслуживание (по официальным данным музея). В залах 14 и 15 есть удобные диваны для отдыха под естественным освещением."}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-[#5C5954] leading-relaxed">
-                    Буфет в цоколе Главного здания временно закрыт на техобслуживание (по официальным данным музея). В залах 14 и 15 есть удобные диваны для отдыха под естественным освещением перед следующими шедеврами.
-                  </p>
+                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                    <button
+                      type="button"
+                      onClick={() => setIsMapOpenMobile(true)}
+                      className="px-2.5 py-1.5 border border-[#C69214] bg-white text-[#8D4B00] font-semibold text-xs hover:bg-[#FAF5F0] transition-colors cursor-pointer"
+                    >
+                      План зала 15 🗺️
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDismissedBreakIndex(currentStopIndex)}
+                      className="px-3 py-1.5 bg-[#899770] hover:bg-[#75835C] text-white font-semibold text-xs transition-colors cursor-pointer"
+                    >
+                      Продолжить экскурсию ✓
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Responsive tour layout: split on desktop, full-width on mobile */}
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
@@ -473,6 +550,11 @@ export function HomePage() {
                   onSaveAnswer={handleSaveAnswer}
                   isLastStop={currentStopIndex === stops.length - 1}
                   onOpenMap={() => setIsMapOpenMobile(true)}
+                  nextStop={stops[currentStopIndex + 1]}
+                  hasBreakAfterCurrent={Boolean(
+                    route.has_break && route.break_after_stop === currentStopIndex + 1
+                  )}
+                  breakInfo={route.break_info}
                 />
               </div>
 

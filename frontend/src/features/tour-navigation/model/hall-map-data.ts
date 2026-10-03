@@ -73,8 +73,8 @@ export const HALL_SPATIAL_REGISTRY: Record<string, HallSpatialData> = {
     number: "7",
     name: "Византийское искусство. Италия VIII–XVI вв.",
     floor: 1,
-    cx: 523.5,
-    cy: 523.4,
+    cx: 1272.1,
+    cy: 724.2,
   },
   "193": {
     hallId: "193",
@@ -147,8 +147,8 @@ export const HALL_SPATIAL_REGISTRY: Record<string, HallSpatialData> = {
     number: "17",
     name: "Искусство Италии XVII–XVIII веков (барокко)",
     floor: 2,
-    cx: 1317.7,
-    cy: 1025.6,
+    cx: 2728.1,
+    cy: 1353.4,
   },
   "202": {
     hallId: "202",
@@ -163,8 +163,8 @@ export const HALL_SPATIAL_REGISTRY: Record<string, HallSpatialData> = {
     number: "19",
     name: "Выставочный зал",
     floor: 2,
-    cx: 973.1,
-    cy: 807.0,
+    cx: 1879.5,
+    cy: 1605.4,
   },
   "204": {
     hallId: "204",
@@ -251,10 +251,77 @@ export const HALL_SPATIAL_REGISTRY: Record<string, HallSpatialData> = {
     number: "30",
     name: "Белый зал (выставочный)",
     floor: 2,
-    cx: 728.5,
-    cy: 704.6,
+    cx: 1208.8,
+    cy: 898.7,
   },
 };
+
+export interface MuseumLandmark {
+  id: string;
+  name: string;
+  floor: 1 | 2;
+  cx: number;
+  cy: number;
+  icon: string;
+  subtext: string;
+}
+
+export const MUSEUM_LANDMARKS: MuseumLandmark[] = [
+  {
+    id: "main_entrance",
+    name: "Главный вход",
+    floor: 1,
+    cx: 1556.0,
+    cy: 2260.0,
+    icon: "🏛️",
+    subtext: "ул. Волхонка, 12",
+  },
+  {
+    id: "grand_staircase_f1",
+    name: "Парадная лестница",
+    floor: 1,
+    cx: 1860.0,
+    cy: 1550.0,
+    icon: "🪜",
+    subtext: "Подъём на 2-й этаж",
+  },
+  {
+    id: "grand_staircase_f2",
+    name: "Парадная лестница",
+    floor: 2,
+    cx: 1860.0,
+    cy: 1550.0,
+    icon: "🪜",
+    subtext: "Спуск на 1-й этаж",
+  },
+  {
+    id: "italian_courtyard",
+    name: "Итальянский дворик",
+    floor: 1,
+    cx: 2271.1,
+    cy: 1154.8,
+    icon: "☕",
+    subtext: "Зал 15 · Отдых",
+  },
+  {
+    id: "greek_courtyard",
+    name: "Греческий дворик",
+    floor: 1,
+    cx: 1452.6,
+    cy: 1603.7,
+    icon: "🏛️",
+    subtext: "Зал 14 · Слепки",
+  },
+  {
+    id: "white_hall",
+    name: "Белый зал",
+    floor: 2,
+    cx: 1208.8,
+    cy: 898.7,
+    icon: "✨",
+    subtext: "Зал 30 · Центральный",
+  },
+];
 
 /**
  * Finds spatial metadata for a stop by hallId, falling back to hallNumber.

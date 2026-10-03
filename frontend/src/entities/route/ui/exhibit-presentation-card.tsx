@@ -125,21 +125,16 @@ export function ExhibitPresentationCard({
           )}
         </div>
 
-        {/* 6. Observation task / Challenge */}
-        {stop.challenge && (
-          <div className="bg-[#FFFFFF] border border-[#E5E1D8] p-4 sm:p-5 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#262626]">
-              <span className="text-sm" aria-hidden="true">👁️</span>
-              <span>Задание на наблюдение</span>
+        {/* 6. Look closer curator tip */}
+        {stop.look_closer && stop.look_closer.trim() !== "" && (
+          <div className="bg-[#FAF9F7] border border-[#E5E1D8] p-4 sm:p-5 space-y-1.5">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#7A756D]">
+              <span className="text-sm" aria-hidden="true">🔍</span>
+              <span>Взгляните ближе: совет куратора</span>
             </div>
-            <p className="text-sm text-[#262626] font-medium leading-relaxed">
-              {stop.challenge.question}
+            <p className="text-sm text-[#262626] leading-relaxed">
+              {stop.look_closer}
             </p>
-            {stop.look_closer && (
-              <p className="text-xs text-[#7A756D] italic pt-1">
-                Подсказка: {stop.look_closer}
-              </p>
-            )}
           </div>
         )}
       </div>

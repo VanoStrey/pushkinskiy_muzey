@@ -12,3 +12,13 @@ export type {
 export { ArtworkImage } from "./ui/artwork-image";
 export { ExhibitPresentationCard } from "./ui/exhibit-presentation-card";
 export { StopCard } from "./ui/stop-card";
+
+export {
+  TOUR_STORAGE_KEY,
+  TOUR_STORAGE_VERSION,
+  saveTourState,
+  loadTourState,
+  clearTourState,
+  validateTourState,
+} from "./lib/tour-storage";
+export type { SavedTourState, TourStage } from "./lib/tour-storage";
