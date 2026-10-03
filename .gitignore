@@ -18,5 +18,8 @@ dist/
 # CI build output (function bundle)
 /build/
 
+# Full museum source exports are kept locally; the app uses the processed catalog.
+/data/raw/
+
 # OS / editors
 .DS_Store

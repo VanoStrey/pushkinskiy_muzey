@@ -1,0 +1,612 @@
+[
+  {
+    "id": "186",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "1",
+    "name": "Искусство Древнего Египта",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "187",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "2",
+    "name": "Искусство Древнего Ближнего Востока",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "188",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "3",
+    "name": "Троя и раскопки Генриха Шлимана",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "189",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "4",
+    "name": "Искусство античного мира. Кипр. Древняя Греция. Этрурия. Древний Рим",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "190",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "5",
+    "name": "Искусство Северного Причерноморья",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "191",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "6",
+    "name": "Эллинистический и римский Египет. Коптское искусство",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "192",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "7",
+    "name": "Византийское искусство. Искусство Италии VIII–XVI веков",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "193",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "8",
+    "name": "Искусство Германии и Нидерландов XV–XVI веков",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "194",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "9",
+    "name": "Искусство Фландрии XVII века",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "195",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "10",
+    "name": "Рембрандт и его школа",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "196",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "11",
+    "name": "Искусство Голландии XVII века",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "197",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "14",
+    "name": "Греческий дворик",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "198",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "15",
+    "name": "Итальянский дворик",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "17789",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "126",
+    "floor_number": "1",
+    "number": "31",
+    "name": "Выставочный зал",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_1floor.svg"
+  },
+  {
+    "id": "199",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "16",
+    "name": "Искусство Древней Греции",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "200",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "16a",
+    "name": "Искусство Эгейского мира",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "201",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "17",
+    "name": "Искусство Италии XVII– XVIII веков (эпоха барокко и рококо)",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "202",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "18",
+    "name": "Испанское и итальянское искусство XVII века",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "203",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "19",
+    "name": "Выставочный зал",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "204",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "20",
+    "name": "Выставочный зал",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "205",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "21",
+    "name": "Искусство Франции XVII века",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "206",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "22",
+    "name": "Искусство Франции первой половины и середины XVIII века",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "207",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "23",
+    "name": "Искусство Франции второй половины XVIII – первой трети XIX века",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "208",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "24",
+    "name": "Греческое искусство поздней классики и эллинизма",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "209",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "25",
+    "name": "Искусство Древней Италии и Древнего Рима",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "210",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "26",
+    "name": "Европейское искусство Средних веков",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "211",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "27",
+    "name": "Нидерландская и немецкая скульптура XV-XVI веков",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "212",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "28",
+    "name": "Итальянская скульптура XV века",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "213",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "29",
+    "name": "Скульптура Микеланджело",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "214",
+    "building_id": "116",
+    "building_name": "Главное здание",
+    "floor_id": "127",
+    "floor_number": "2",
+    "number": "30",
+    "name": "Белый зал (выставочный)",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/main_2floor.svg"
+  },
+  {
+    "id": "146",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "8",
+    "name": "Романтизм",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "147",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "9",
+    "name": "Барбизонская школа. Реализм",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "148",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "10",
+    "name": "Эдуард Мане. Эдгар Дега",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "149",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "11",
+    "name": "Пьер Огюст Ренуар",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "150",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "14",
+    "name": "Клод Моне",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "151",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "15",
+    "name": "Поль Сезанн",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "152",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "16",
+    "name": "Винсент ван Гог. Неоимпрессионизм",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "153",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "17",
+    "name": "Поль Гоген",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "12647",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "12",
+    "name": "Символизм",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "12648",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "131",
+    "floor_number": "2",
+    "number": "13",
+    "name": "Европа рубежа веков",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_2floor.svg"
+  },
+  {
+    "id": "154",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "132",
+    "floor_number": "3",
+    "number": "18",
+    "name": "Фовизм",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_3floor.svg"
+  },
+  {
+    "id": "155",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "132",
+    "floor_number": "3",
+    "number": "19",
+    "name": "Анри Матисс",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_3floor.svg"
+  },
+  {
+    "id": "156",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "132",
+    "floor_number": "3",
+    "number": "20",
+    "name": "Группа «Наби»",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_3floor.svg"
+  },
+  {
+    "id": "157",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "132",
+    "floor_number": "3",
+    "number": "21",
+    "name": "Пабло Пикассо и Анри Руссо",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_3floor.svg"
+  },
+  {
+    "id": "158",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "132",
+    "floor_number": "3",
+    "number": "22",
+    "name": "Андре Дерен и итальянское искусство 1920-х гг.",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_3floor.svg"
+  },
+  {
+    "id": "159",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "132",
+    "floor_number": "3",
+    "number": "23",
+    "name": "Парижская школа",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_3floor.svg"
+  },
+  {
+    "id": "160",
+    "building_id": "117",
+    "building_name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "floor_id": "132",
+    "floor_number": "3",
+    "number": "24–25",
+    "name": "Искусство XX века",
+    "floor_plan_url": "https://pushkinmuseum.art/json/svg/gallery_3floor.svg"
+  },
+  {
+    "id": "168",
+    "building_id": "120",
+    "building_name": "Учебный художественный музей им.&nbsp;И.В.&nbsp;Цветаева (РГГУ)",
+    "floor_id": "136",
+    "floor_number": "0",
+    "number": "7",
+    "name": "«Зал Медичи». Скульптура Средних Веков и Возрождения",
+    "floor_plan_url": null
+  },
+  {
+    "id": "162",
+    "building_id": "120",
+    "building_name": "Учебный художественный музей им.&nbsp;И.В.&nbsp;Цветаева (РГГУ)",
+    "floor_id": "137",
+    "floor_number": "1",
+    "number": "1",
+    "name": "«Зал Сфинкса». Искусство Египта Раннего, Древнего и Среднего царств",
+    "floor_plan_url": null
+  },
+  {
+    "id": "163",
+    "building_id": "120",
+    "building_name": "Учебный художественный музей им.&nbsp;И.В.&nbsp;Цветаева (РГГУ)",
+    "floor_id": "139",
+    "floor_number": "3",
+    "number": "2",
+    "name": "«Зал Рамсеса». Искусство Египта Нового царства и Поздней эпохи",
+    "floor_plan_url": null
+  },
+  {
+    "id": "164",
+    "building_id": "120",
+    "building_name": "Учебный художественный музей им.&nbsp;И.В.&nbsp;Цветаева (РГГУ)",
+    "floor_id": "140",
+    "floor_number": "4",
+    "number": "3",
+    "name": "«Зал Гудеа». Искусство Передней Азии",
+    "floor_plan_url": null
+  },
+  {
+    "id": "165",
+    "building_id": "120",
+    "building_name": "Учебный художественный музей им.&nbsp;И.В.&nbsp;Цветаева (РГГУ)",
+    "floor_id": "141",
+    "floor_number": "5",
+    "number": "4",
+    "name": "«Зал Дискобола». Искусство Древней Греции эпохи архаики и классики",
+    "floor_plan_url": null
+  },
+  {
+    "id": "166",
+    "building_id": "120",
+    "building_name": "Учебный художественный музей им.&nbsp;И.В.&nbsp;Цветаева (РГГУ)",
+    "floor_id": "142",
+    "floor_number": "6",
+    "number": "5",
+    "name": "«Зал Вакханки». Искусство Древней Греции эпохи Поздней классики",
+    "floor_plan_url": null
+  },
+  {
+    "id": "167",
+    "building_id": "120",
+    "building_name": "Учебный художественный музей им.&nbsp;И.В.&nbsp;Цветаева (РГГУ)",
+    "floor_id": "142",
+    "floor_number": "6",
+    "number": "6",
+    "name": "«Зал Аполлона». Искусство Древней Греции и Древнего Рима",
+    "floor_plan_url": null
+  },
+  {
+    "id": "170",
+    "building_id": "121",
+    "building_name": "Мемориальная квартира Святослава Рихтера",
+    "floor_id": "169",
+    "floor_number": "16",
+    "number": null,
+    "name": "Холл",
+    "floor_plan_url": null
+  },
+  {
+    "id": "5076",
+    "building_id": "121",
+    "building_name": "Мемориальная квартира Святослава Рихтера",
+    "floor_id": "169",
+    "floor_number": "16",
+    "number": null,
+    "name": "Выставка пастелей Святослава Рихтера",
+    "floor_plan_url": null
+  },
+  {
+    "id": "5077",
+    "building_id": "121",
+    "building_name": "Мемориальная квартира Святослава Рихтера",
+    "floor_id": "169",
+    "floor_number": "16",
+    "number": null,
+    "name": "Кабинет Нины Дорлиак",
+    "floor_plan_url": null
+  },
+  {
+    "id": "5078",
+    "building_id": "121",
+    "building_name": "Мемориальная квартира Святослава Рихтера",
+    "floor_id": "169",
+    "floor_number": "16",
+    "number": null,
+    "name": "Столовая",
+    "floor_plan_url": null
+  },
+  {
+    "id": "5079",
+    "building_id": "121",
+    "building_name": "Мемориальная квартира Святослава Рихтера",
+    "floor_id": "169",
+    "floor_number": "16",
+    "number": null,
+    "name": "Зал",
+    "floor_plan_url": null
+  },
+  {
+    "id": "5080",
+    "building_id": "121",
+    "building_name": "Мемориальная квартира Святослава Рихтера",
+    "floor_id": "169",
+    "floor_number": "16",
+    "number": null,
+    "name": "Комната отдыха",
+    "floor_plan_url": null
+  },
+  {
+    "id": "5081",
+    "building_id": "121",
+    "building_name": "Мемориальная квартира Святослава Рихтера",
+    "floor_id": "169",
+    "floor_number": "16",
+    "number": null,
+    "name": "Кабинет Святослава Рихтера",
+    "floor_plan_url": null
+  }
+]

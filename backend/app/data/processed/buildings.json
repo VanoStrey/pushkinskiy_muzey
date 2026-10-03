@@ -1,0 +1,79 @@
+[
+  {
+    "id": "116",
+    "name": "Главное здание",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/main/index.php",
+    "closed": false,
+    "closed_source": "0"
+  },
+  {
+    "id": "117",
+    "name": "Галерея искусства стран Европы и Америки XIX–XX веков",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/gallery/index.php",
+    "closed": false,
+    "closed_source": "0"
+  },
+  {
+    "id": "118",
+    "name": "Отдел личных коллекций",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/olk/index.php",
+    "closed": true,
+    "closed_source": "1"
+  },
+  {
+    "id": "119",
+    "name": "Центр эстетического воспитания «Мусейон»",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/museyon/index.php",
+    "closed": false,
+    "closed_source": "0"
+  },
+  {
+    "id": "120",
+    "name": "Учебный художественный музей им.&nbsp;И.В.&nbsp;Цветаева (РГГУ)",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/cvetaev/index.php",
+    "closed": false,
+    "closed_source": "0"
+  },
+  {
+    "id": "121",
+    "name": "Мемориальная квартира Святослава Рихтера",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/richter/index.php",
+    "closed": false,
+    "closed_source": "0"
+  },
+  {
+    "id": "122",
+    "name": "Усадьба князей Голицыных",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/impressionists/index.php",
+    "closed": true,
+    "closed_source": "1"
+  },
+  {
+    "id": "123",
+    "name": "Усадьба князей Вяземских — Долгоруковых",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/oldmasters/index.php",
+    "closed": true,
+    "closed_source": "1"
+  },
+  {
+    "id": "124",
+    "name": "Дом Текста",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/texthouse/index.php",
+    "closed": true,
+    "closed_source": "1"
+  },
+  {
+    "id": "125",
+    "name": "Депозитарно-реставрационный и выставочный комплекс",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/restoration/index.php",
+    "closed": true,
+    "closed_source": "1"
+  },
+  {
+    "id": "9575",
+    "name": "Мастерская Эдуарда Штейнберга в Тарусе",
+    "source_url": "https://pushkinmuseum.art/museum/buildings/tarusa/index.php",
+    "closed": false,
+    "closed_source": "0"
+  }
+]
