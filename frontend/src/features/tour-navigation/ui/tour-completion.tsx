@@ -33,58 +33,58 @@ export function TourCompletion({
   return (
     <div className="max-w-2xl mx-auto space-y-8 py-4 sm:py-6 text-center">
       {/* Header */}
-      <div className="bg-white border border-[#E3DDD4] p-6 sm:p-8 shadow-xs">
+      <div className="bg-surface border border-ink/12 p-6 sm:p-8 shadow-[var(--shadow-raised-sm)]">
         <div
-          className="w-16 h-16 bg-[#F4F6F2] border-2 border-[#899770] text-[#899770] flex items-center justify-center mx-auto text-2xl mb-4"
+          className="w-16 h-16 bg-ground border-2 border-accent text-accent flex items-center justify-center mx-auto text-2xl mb-4"
           aria-hidden="true"
         >
           🏛️
         </div>
 
-        <span className="text-xs uppercase tracking-widest text-[#899770] font-semibold">
+        <span className="text-xs uppercase tracking-widest text-accent font-semibold">
           Маршрут успешно пройден
         </span>
-        <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1A1918] mt-1 leading-tight">
+        <h1 className="font-serif text-3xl sm:text-4xl font-bold text-ink mt-1 leading-tight">
           {route.title}
         </h1>
-        <p className="text-sm text-[#5C5954] mt-2 max-w-md mx-auto leading-relaxed">
+        <p className="text-sm text-muted mt-2 max-w-md mx-auto leading-relaxed">
           Поздравляем! Вы завершили персональное путешествие по шедеврам Государственного музея им. А.С. Пушкина.
         </p>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto mt-6 pt-6 border-t border-[#E8E3DC]">
-          <div className="p-3 bg-[#FAF7F2] border border-[#EBE5DE]">
-            <div className="text-2xl font-serif font-bold text-[#1A1918]">
+        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto mt-6 pt-6 border-t border-ink/12">
+          <div className="p-3 bg-surface rounded-[var(--radius-control)] shadow-[var(--shadow-raised-sm)]">
+            <div className="text-2xl font-serif font-bold text-ink">
               {route.stops.length}
             </div>
-            <div className="text-[11px] text-[#7A756D] uppercase tracking-wider mt-0.5">
+            <div className="text-[11px] text-faint uppercase tracking-wider mt-0.5">
               Шедевров изучено
             </div>
           </div>
-          <div className="p-3 bg-[#FAF7F2] border border-[#EBE5DE]">
-            <div className="text-2xl font-serif font-bold text-[#899770]">
+          <div className="p-3 bg-surface rounded-[var(--radius-control)] shadow-[var(--shadow-raised-sm)]">
+            <div className="text-2xl font-serif font-bold text-accent">
               {questionCount ? `${correctCount} / ${questionCount}` : `${answeredCount} / ${route.stops.length}`}
             </div>
-            <div className="text-[11px] text-[#7A756D] uppercase tracking-wider mt-0.5">
+            <div className="text-[11px] text-faint uppercase tracking-wider mt-0.5">
               {questionCount ? "Загадок разгадано" : "Заданий выполнено"}
             </div>
           </div>
         </div>
 
         {answeredCount < route.stops.length && (
-          <p className="text-xs text-[#8C867E] mt-3">
+          <p className="text-xs text-faint mt-3">
             Вы отметили выполненными {answeredCount} из {route.stops.length} заданий.
           </p>
         )}
       </div>
 
       {/* Artworks gallery summary */}
-      <div className="bg-white border border-[#E3DDD4] p-5 sm:p-6 shadow-xs text-left">
+      <div className="bg-surface border border-ink/12 p-5 sm:p-6 shadow-[var(--shadow-raised-sm)] text-left">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif text-xl font-bold text-[#1A1918]">
+          <h2 className="font-serif text-xl font-bold text-ink">
             Произведения вашего маршрута
           </h2>
-          <span className="text-xs text-[#726E67]">
+          <span className="text-xs text-muted">
             Нажмите на карточку, чтобы пересмотреть
           </span>
         </div>
@@ -115,7 +115,7 @@ export function TourCompletion({
                   }
                 }}
                 aria-label={`Экспонат ${stop.position}: ${stop.title}. Нажмите для повторного просмотра.`}
-                className="group border border-[#E8E3DC] hover:border-[#899770] p-2.5 transition-all cursor-pointer bg-[#FAFAFA] hover:bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
+                className="group border border-ink/12 hover:border-accent p-2.5 transition-all cursor-pointer bg-ground hover:bg-surface flex flex-col justify-between shadow-[var(--shadow-raised-sm)] hover:shadow-[var(--shadow-raised-sm)] focus:outline-hidden focus:ring-2 focus:ring-accent"
               >
                 <div>
                   <div className="h-28 overflow-hidden mb-2 relative">
@@ -129,8 +129,8 @@ export function TourCompletion({
                     />
                     {hasAnswer && (
                       <span
-                        className={`absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white shadow-xs ${
-                          isDone ? "bg-[#2E7D32]" : "bg-[#8D4B00]"
+                        className={`absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white shadow-[var(--shadow-raised-sm)] ${
+                          isDone ? "bg-correct" : "bg-gilt"
                         }`}
                         title={
                           isObservation
@@ -144,14 +144,14 @@ export function TourCompletion({
                       </span>
                     )}
                   </div>
-                  <h3 className="font-serif text-xs font-bold text-[#1A1918] line-clamp-2 group-hover:text-[#899770] transition-colors">
+                  <h3 className="font-serif text-xs font-bold text-ink line-clamp-2 group-hover:text-accent transition-colors">
                     {stop.title}
                   </h3>
-                  <p className="text-[10px] text-[#7A756D] line-clamp-1 mt-0.5">
+                  <p className="text-[10px] text-faint line-clamp-1 mt-0.5">
                     {stop.artist}
                   </p>
                 </div>
-                <span className="text-[10px] text-[#899770] font-medium mt-2 inline-flex items-center gap-1">
+                <span className="text-[10px] text-accent font-medium mt-2 inline-flex items-center gap-1">
                   <span>Пересмотреть</span>
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                 </span>
@@ -166,7 +166,7 @@ export function TourCompletion({
         <button
           type="button"
           onClick={onRestart}
-          className="w-full sm:w-auto bg-[#899770] hover:bg-[#75835C] text-white px-8 py-3.5 font-medium text-base transition-colors shadow-xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
+          className="w-full sm:w-auto bg-accent hover:bg-accent-hover text-white px-8 py-3.5 font-medium text-base transition-colors shadow-[var(--shadow-raised-sm)] cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-accent"
         >
           Собрать новый маршрут
         </button>
@@ -175,7 +175,7 @@ export function TourCompletion({
           <button
             type="button"
             onClick={onViewOverview}
-            className="w-full sm:w-auto bg-white border border-[#D5CDC2] text-[#474440] hover:bg-[#F4EFEB] px-6 py-3.5 font-medium text-base transition-colors cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
+            className="w-full sm:w-auto bg-surface border border-ink/15 text-muted hover:bg-ground px-6 py-3.5 font-medium text-base transition-colors cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-accent"
           >
             Вернуться к плану маршрута
           </button>

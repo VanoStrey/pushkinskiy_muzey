@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { NeoButton, NeoPanel, NeoTile } from "@/shared/ui";
 import type {
   DifficultyLevel,
   GroupType,
@@ -195,102 +196,74 @@ export function RoutePreferencesForm({
     });
   };
 
+  const interestsDone = selectedInterests.length > 0;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 max-w-2xl mx-auto">
-      {/* Editorial Intro Banner */}
-      <div className="text-center pt-1 pb-2 sm:pb-4">
-        <span className="inline-block text-[11px] uppercase tracking-widest text-[#899770] font-semibold bg-[#F4F6F2] border border-[#DCE4D4] px-3 py-1 mb-3">
+    <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5 sm:space-y-7">
+      {/* Editorial intro */}
+      <div className="pt-1 pb-1 text-center sm:pb-3">
+        <span className="wall-label inline-block rounded-[var(--radius-pill)] bg-ground px-4 py-1.5 shadow-[var(--shadow-pressed-sm)]">
           Государственный музей им. А.С. Пушкина
         </span>
-        <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1A1918] tracking-tight leading-tight">
-          Маршрут, который понимает ваши интересы
+        <h1 className="mt-4 font-serif text-[2rem] font-bold leading-[1.05] text-ink sm:text-[2.75rem] lg:text-[3.25rem]">
+          Маршрут, который
+          <br />
+          <span className="text-accent">понимает ваши интересы</span>
         </h1>
-        <p className="mt-3 text-[#5C5954] text-sm sm:text-base leading-relaxed max-w-lg mx-auto">
-          Персональный AI-гид для визита в музей: глубокое погружение в историю шедевров по проверенному каталогу музея, скрытые смыслы полотен и атмосфера залов.
+        <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted sm:text-base">
+          Персональный AI-гид для визита в музей: погружение в историю шедевров по
+          проверенному каталогу, скрытые смыслы полотен и атмосфера залов.
         </p>
       </div>
 
-      {/* 1. What interests you? */}
-      <section
-        className="bg-white border border-[#E5E1D8] p-5 sm:p-6 shadow-xs"
-        role="group"
-        aria-labelledby="interests-heading"
-      >
-        <div className="flex flex-wrap items-baseline justify-between gap-1 mb-3">
-          <h2 id="interests-heading" className="font-serif text-xl font-bold text-[#000000]">
-            1. Что вам интересно?
+      {/* 1. Interests */}
+      <NeoPanel as="section" role="group" ariaLabelledby="interests-heading">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-1">
+          <h2 id="interests-heading" className="font-serif text-xl font-bold text-ink">
+            <span className="text-faint">01</span> Что вам интересно?
           </h2>
-          <span className="text-xs">
-            {selectedInterests.length > 0 ? (
-              <span className="text-[#5A6844] font-semibold">
-                ✓ Выбрано {selectedInterests.length} из {MAX_INTERESTS}
-              </span>
-            ) : (
-              <span className="text-[#A8A29A]">Выберите от 1 до {MAX_INTERESTS} тем</span>
-            )}
+          <span className="wall-label">
+            {selectedInterests.length} / {MAX_INTERESTS}
           </span>
         </div>
 
         {interestsNotice && (
           <div
             role="alert"
-            className="mb-3 px-3 py-2 bg-[#FFF9F2] border border-[#FFE0B2] text-[#8D4B00] text-xs flex items-center gap-1.5 animate-in fade-in"
+            className="mb-3 rounded-[var(--radius-control)] bg-gilt-soft px-3.5 py-2.5 text-xs leading-relaxed text-ink"
           >
-            <span>ℹ️</span>
-            <span>{interestsNotice}</span>
+            {interestsNotice}
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {AVAILABLE_INTERESTS.map((item) => {
-            const isSelected = selectedInterests.includes(item.id);
-            return (
-              <button
-                key={item.id}
-                type="button"
-                role="checkbox"
-                aria-checked={isSelected}
-                onClick={() => toggleInterest(item.id)}
-                className={`text-left p-3.5 border transition-all flex flex-col justify-between min-h-[56px] cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
-                  isSelected
-                    ? "bg-[#F4F6F2] border-[#899770] shadow-xs text-[#000000]"
-                    : "bg-[#FAFAFA] border-[#E5E1D8] hover:border-[#899770]/60 hover:bg-[#FDFBF7] text-[#262626]"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm font-semibold ${isSelected ? "text-[#5A6844]" : "text-[#000000]"}`}>
-                    {item.label}
-                  </span>
-                  <span
-                    className={`w-4 h-4 border flex items-center justify-center text-[10px] shrink-0 ${
-                      isSelected ? "border-[#899770] bg-[#899770] text-white" : "border-[#C4BCB1]"
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {isSelected ? "✓" : ""}
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#7A756D] mt-1">
-                  {item.hint}
-                </span>
-              </button>
-            );
-          })}
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          {AVAILABLE_INTERESTS.map((item) => (
+            <NeoTile
+              key={item.id}
+              role="checkbox"
+              selected={selectedInterests.includes(item.id)}
+              onClick={() => toggleInterest(item.id)}
+              label={item.label}
+              hint={item.hint}
+            />
+          ))}
         </div>
-      </section>
+      </NeoPanel>
 
-      {/* 2. Custom Visitor Comment */}
-      <section className="bg-white border border-[#E5E1D8] p-5 sm:p-6 shadow-xs space-y-2">
-        <div className="flex items-center justify-between">
-          <label htmlFor="visitor-comment-input" className="font-serif text-xl font-bold text-[#000000]">
-            2. Краткий комментарий о своих интересах
+      {/* 2. Free-text comment */}
+      <NeoPanel as="section">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <label
+            htmlFor="visitor-comment-input"
+            className="font-serif text-xl font-bold text-ink"
+          >
+            <span className="text-faint">02</span> Своими словами
           </label>
-          <span className="text-[11px] font-semibold text-[#899770] bg-[#F4F6F2] px-2.5 py-0.5 border border-[#DCE4D4]">
-            По желанию
-          </span>
+          <span className="wall-label">по желанию</span>
         </div>
-        <p className="text-xs text-[#7A756D] leading-relaxed">
-          Напишите своими словами, что вам особенно интересно (эпохи, сюжеты, персонажи или детали), и AI-гид подберёт залы и произведения с фокусом на ваш запрос:
+        <p className="text-xs leading-relaxed text-muted">
+          Напишите, что особенно интересно — эпохи, сюжеты, персонажи или детали. AI-гид
+          подберёт произведения с фокусом на ваш запрос.
         </p>
         <textarea
           id="visitor-comment-input"
@@ -299,306 +272,152 @@ export function RoutePreferencesForm({
           placeholder="Например: хочу увидеть древнеегипетские саркофаги и загадочные портреты, меня привлекают необычные детали и золотые украшения..."
           maxLength={500}
           rows={3}
-          className="w-full mt-2 p-3.5 text-sm text-[#262626] bg-[#FAF9F7] border border-[#E5E1D8] focus:outline-hidden focus:ring-2 focus:ring-[#899770] focus:border-[#899770] transition-all resize-none placeholder:text-[#A8A29A]"
+          className="mt-3 w-full resize-none rounded-[var(--radius-control)] bg-sunken p-3.5 text-sm text-ink shadow-[var(--shadow-pressed-sm)] transition-all placeholder:text-faint focus:outline-none focus-visible:outline-2"
         />
-        <div className="flex justify-end text-[11px] text-[#A8A29A]">
-          <span>{visitorComment.length} / 500 символов</span>
+        <div className="mt-1 flex justify-end">
+          <span className="wall-label">{visitorComment.length} / 500</span>
         </div>
-      </section>
+      </NeoPanel>
 
       {/* 3. Duration */}
-      <section
-        className="bg-white border border-[#E5E1D8] p-5 sm:p-6 shadow-xs"
-        role="radiogroup"
-        aria-labelledby="duration-heading"
-      >
-        <div className="flex items-center justify-between mb-1">
-          <h2 id="duration-heading" className="font-serif text-xl font-bold text-[#000000]">
-            3. Сколько у вас времени?
-          </h2>
-          <span className="text-xs">
-            {duration !== null ? (
-              <span className="text-[#5A6844] font-semibold">
-                ✓ Выбрано: {DURATION_OPTIONS.find((d) => d.minutes === duration)?.label}
-              </span>
-            ) : (
-              <span className="text-[#A8A29A]">Не выбрано</span>
-            )}
-          </span>
-        </div>
-        <p className="text-xs text-[#7A756D] mb-3">
-          Выберите продолжительность визита для расчета оптимального количества шедевров и темпа:
+      <NeoPanel as="section" role="radiogroup" ariaLabelledby="duration-heading">
+        <h2 id="duration-heading" className="font-serif text-xl font-bold text-ink">
+          <span className="text-faint">03</span> Сколько у вас времени?
+        </h2>
+        <p className="mb-4 mt-1 text-xs text-muted">
+          От этого зависит, сколько остановок уложится в маршрут.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           {DURATION_OPTIONS.map((opt) => (
-            <button
+            <NeoTile
               key={opt.minutes}
-              type="button"
               role="radio"
-              aria-checked={duration === opt.minutes}
+              selected={duration === opt.minutes}
               onClick={() => handleSelectDuration(opt.minutes)}
-              className={`p-3.5 border text-center transition-all cursor-pointer min-h-[56px] focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
-                duration === opt.minutes
-                  ? "bg-[#F4F6F2] border-[#899770] text-[#5A6844] font-semibold ring-1 ring-[#899770]"
-                  : "bg-[#FAFAFA] border-[#E5E1D8] hover:border-[#899770]/60 hover:bg-[#FDFBF7] text-[#262626]"
-              }`}
-            >
-              <div className="text-base font-bold">{opt.label}</div>
-              <div className="text-[11px] text-[#7A756D] mt-0.5">{opt.stopsHint}</div>
-            </button>
+              label={opt.label}
+              hint={opt.stopsHint}
+            />
           ))}
         </div>
-      </section>
+      </NeoPanel>
 
-      {/* 4. Who came? Group Type */}
-      <section
-        className="bg-white border border-[#E5E1D8] p-5 sm:p-6 shadow-xs"
-        role="radiogroup"
-        aria-labelledby="group-heading"
-      >
-        <div className="flex items-center justify-between mb-3">
-          <h2 id="group-heading" className="font-serif text-xl font-bold text-[#000000]">
-            4. Кто сегодня в музее?
-          </h2>
-          <span className="text-xs">
-            {groupType !== null ? (
-              <span className="text-[#5A6844] font-semibold">
-                ✓ Выбрано: {GROUP_OPTIONS.find((g) => g.id === groupType)?.label}
-              </span>
-            ) : (
-              <span className="text-[#A8A29A]">Не выбрано</span>
-            )}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      {/* 4. Group */}
+      <NeoPanel as="section" role="radiogroup" ariaLabelledby="group-heading">
+        <h2 id="group-heading" className="mb-4 font-serif text-xl font-bold text-ink">
+          <span className="text-faint">04</span> Кто сегодня в музее?
+        </h2>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           {GROUP_OPTIONS.map((opt) => (
-            <button
+            <NeoTile
               key={opt.id}
-              type="button"
               role="radio"
-              aria-checked={groupType === opt.id}
+              selected={groupType === opt.id}
               onClick={() => handleSelectGroup(opt.id)}
-              className={`p-3.5 border text-center transition-all flex flex-col items-center justify-center cursor-pointer min-h-[64px] focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
-                groupType === opt.id
-                  ? "bg-[#F4F6F2] border-[#899770] text-[#5A6844] font-semibold ring-1 ring-[#899770]"
-                  : "bg-[#FAFAFA] border-[#E5E1D8] hover:border-[#899770]/60 hover:bg-[#FDFBF7] text-[#262626]"
-              }`}
-            >
-              <span className="text-xl mb-1" aria-hidden="true">{opt.icon}</span>
-              <span className="text-xs font-medium">{opt.label}</span>
-            </button>
+              label={opt.label}
+              icon={opt.icon}
+            />
           ))}
         </div>
-      </section>
+      </NeoPanel>
 
-      {/* 5. Format & 6. Difficulty */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Style */}
-        <section
-          className="bg-white border border-[#E5E1D8] p-5 shadow-xs"
-          role="radiogroup"
-          aria-labelledby="style-heading"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <h2 id="style-heading" className="font-serif text-lg font-bold text-[#000000]">
-              5. Формат подачи
-            </h2>
-            <span className="text-xs">
-              {style !== null ? (
-                <span className="text-[#5A6844] font-semibold">✓</span>
-              ) : (
-                <span className="text-[#A8A29A]">Не выбрано</span>
-              )}
-            </span>
-          </div>
-          <div className="space-y-2">
+      {/* 5 + 6. Style and difficulty */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-4">
+        <NeoPanel as="section" role="radiogroup" ariaLabelledby="style-heading">
+          <h2 id="style-heading" className="mb-4 font-serif text-lg font-bold text-ink">
+            <span className="text-faint">05</span> Формат подачи
+          </h2>
+          <div className="space-y-2.5">
             {STYLE_OPTIONS.map((opt) => (
-              <button
+              <NeoTile
                 key={opt.id}
-                type="button"
                 role="radio"
-                aria-checked={style === opt.id}
+                selected={style === opt.id}
                 onClick={() => handleSelectStyle(opt.id)}
-                className={`w-full text-left p-3 border text-xs transition-all cursor-pointer min-h-[48px] focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
-                  style === opt.id
-                    ? "bg-[#F4F6F2] border-[#899770] text-[#000000] ring-1 ring-[#899770]"
-                    : "bg-[#FAFAFA] border-[#E5E1D8] hover:border-[#899770]/60 hover:bg-[#FDFBF7] text-[#262626]"
-                }`}
-              >
-                <div className={`font-semibold ${style === opt.id ? "text-[#5A6844]" : ""}`}>
-                  {opt.label}
-                </div>
-                <div className="text-[11px] text-[#7A756D] mt-0.5">{opt.desc}</div>
-              </button>
+                label={opt.label}
+                hint={opt.desc}
+              />
             ))}
           </div>
-        </section>
+        </NeoPanel>
 
-        {/* Difficulty */}
-        <section
-          className="bg-white border border-[#E5E1D8] p-5 shadow-xs"
-          role="radiogroup"
-          aria-labelledby="diff-heading"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <h2 id="diff-heading" className="font-serif text-lg font-bold text-[#000000]">
-              6. Опыт в искусстве
-            </h2>
-            <span className="text-xs">
-              {difficulty !== null ? (
-                <span className="text-[#5A6844] font-semibold">✓</span>
-              ) : (
-                <span className="text-[#A8A29A]">Не выбрано</span>
-              )}
-            </span>
-          </div>
-          <div className="space-y-2">
+        <NeoPanel as="section" role="radiogroup" ariaLabelledby="diff-heading">
+          <h2 id="diff-heading" className="mb-4 font-serif text-lg font-bold text-ink">
+            <span className="text-faint">06</span> Опыт в искусстве
+          </h2>
+          <div className="space-y-2.5">
             {DIFFICULTY_OPTIONS.map((opt) => (
-              <button
+              <NeoTile
                 key={opt.id}
-                type="button"
                 role="radio"
-                aria-checked={difficulty === opt.id}
+                selected={difficulty === opt.id}
                 onClick={() => handleSelectDifficulty(opt.id)}
-                className={`w-full text-left p-3 border text-xs transition-all cursor-pointer min-h-[48px] focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
-                  difficulty === opt.id
-                    ? "bg-[#F4F6F2] border-[#899770] text-[#000000] ring-1 ring-[#899770]"
-                    : "bg-[#FAFAFA] border-[#E5E1D8] hover:border-[#899770]/60 hover:bg-[#FDFBF7] text-[#262626]"
-                }`}
-              >
-                <div className={`font-semibold ${difficulty === opt.id ? "text-[#5A6844]" : ""}`}>
-                  {opt.label}
-                </div>
-                <div className="text-[11px] text-[#7A756D] mt-0.5">{opt.desc}</div>
-              </button>
+                label={opt.label}
+                hint={opt.desc}
+              />
             ))}
           </div>
-        </section>
+        </NeoPanel>
       </div>
 
-      {/* 7. Coffee / Rest Break Preference */}
-      <section
-        className="bg-white border border-[#E5E1D8] p-5 sm:p-6 shadow-xs"
-        role="radiogroup"
-        aria-labelledby="break-heading"
-      >
-        <div className="flex items-center justify-between mb-2">
-          <h2 id="break-heading" className="font-serif text-xl font-bold text-[#000000]">
-            7. Пауза на отдых и кофе в маршруте
-          </h2>
-          <span className="text-xs">
-            {includeBreak !== null ? (
-              <span className="text-[#5A6844] font-semibold">✓ Выбран вариант</span>
-            ) : (
-              <span className="text-[#A8A29A]">Не выбрано</span>
-            )}
-          </span>
-        </div>
-        <p className="text-xs text-[#7A756D] leading-relaxed mb-3">
-          Буфет цокольного этажа временно закрыт на техобслуживание. В Итальянском дворике (зал 15) и Греческом дворике (зал 14) обустроены удобные диваны для отдыха.
+      {/* 7. Break */}
+      <NeoPanel as="section" role="radiogroup" ariaLabelledby="break-heading">
+        <h2 id="break-heading" className="font-serif text-xl font-bold text-ink">
+          <span className="text-faint">07</span> Пауза на отдых
+        </h2>
+        <p className="mb-4 mt-1 text-xs leading-relaxed text-muted">
+          Буфет цокольного этажа закрыт на техобслуживание. В Итальянском (зал 15) и
+          Греческом (зал 14) дворах есть удобные диваны.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            type="button"
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <NeoTile
             role="radio"
-            aria-checked={includeBreak === true}
+            selected={includeBreak === true}
             onClick={() => handleSelectBreak(true)}
-            className={`p-3.5 border text-left transition-all cursor-pointer min-h-[56px] focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
-              includeBreak === true
-                ? "bg-[#F4F6F2] border-[#899770] text-[#000000] ring-1 ring-[#899770]"
-                : "bg-[#FAFAFA] border-[#E5E1D8] hover:border-[#899770]/60 hover:bg-[#FDFBF7] text-[#262626]"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-sm text-[#000000]">
-                ☕ С паузой на отдых
-              </span>
-              <span
-                className={`w-4 h-4 border flex items-center justify-center text-[10px] shrink-0 ${
-                  includeBreak === true ? "border-[#899770] bg-[#899770] text-white" : "border-[#C4BCB1]"
-                }`}
-                aria-hidden="true"
-              >
-                {includeBreak === true ? "✓" : ""}
-              </span>
-            </div>
-            <div className="text-[11px] text-[#7A756D] mt-1">
-              Перерыв в середине пути в Итальянском дворике (зал 15)
-            </div>
-          </button>
-
-          <button
-            type="button"
+            label="☕ С паузой на отдых"
+            hint="Перерыв в середине пути, в Итальянском дворике"
+          />
+          <NeoTile
             role="radio"
-            aria-checked={includeBreak === false}
+            selected={includeBreak === false}
             onClick={() => handleSelectBreak(false)}
-            className={`p-3.5 border text-left transition-all cursor-pointer min-h-[56px] focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
-              includeBreak === false
-                ? "bg-[#F4F6F2] border-[#899770] text-[#000000] ring-1 ring-[#899770]"
-                : "bg-[#FAFAFA] border-[#E5E1D8] hover:border-[#899770]/60 hover:bg-[#FDFBF7] text-[#262626]"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-sm text-[#000000]">
-                ⚡ Без перерыва
-              </span>
-              <span
-                className={`w-4 h-4 border flex items-center justify-center text-[10px] shrink-0 ${
-                  includeBreak === false ? "border-[#899770] bg-[#899770] text-white" : "border-[#C4BCB1]"
-                }`}
-                aria-hidden="true"
-              >
-                {includeBreak === false ? "✓" : ""}
-              </span>
-            </div>
-            <div className="text-[11px] text-[#7A756D] mt-1">
-              Непрерывный просмотр шедевров без запланированной паузы
-            </div>
-          </button>
+            label="⚡ Без перерыва"
+            hint="Непрерывный просмотр шедевров"
+          />
         </div>
-      </section>
+      </NeoPanel>
 
-      {/* Validation Error Banner */}
+      {/* Validation */}
       {validationError && (
         <div
           role="alert"
-          className="p-4 bg-[#FFF9F2] border-l-4 border-[#899770] text-[#262626] text-sm flex items-start gap-3 shadow-xs animate-in fade-in"
+          className="flex items-start gap-3 rounded-[var(--radius-control)] bg-gilt-soft p-4 shadow-[var(--shadow-raised-sm)]"
         >
-          <span className="text-lg shrink-0" aria-hidden="true">⚠️</span>
+          <span className="shrink-0 text-lg" aria-hidden="true">
+            ⚠️
+          </span>
           <div className="flex-1">
-            <div className="font-bold text-[#000000]">Заполните все пункты анкеты</div>
-            <div className="text-xs text-[#5C5954] mt-0.5 leading-relaxed">{validationError}</div>
+            <div className="text-sm font-bold text-ink">Заполните все пункты анкеты</div>
+            <div className="mt-0.5 text-xs leading-relaxed text-muted">{validationError}</div>
           </div>
         </div>
       )}
 
-      {/* Submit Button */}
-      <div className="pt-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          aria-busy={isPending}
-          className="w-full bg-[#899770] hover:bg-[#75835C] disabled:bg-[#C4BCB1] text-white py-4 px-6 min-h-[52px] font-medium text-base sm:text-lg transition-all shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2 focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
-        >
+      {/* Submit */}
+      <div className="pt-1">
+        <NeoButton type="submit" full busy={isPending} disabled={isPending} className="text-base sm:text-lg">
           {isPending ? (
-            <>
-              <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span>Yandex AI Studio формирует маршрут...</span>
-            </>
+            <span>Yandex AI Studio формирует маршрут…</span>
           ) : (
             <>
               <span>Создать мой персональный маршрут</span>
-              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+              <span aria-hidden="true">→</span>
             </>
           )}
-        </button>
-        <p className="text-center text-xs text-[#8C867E] mt-3">
-          Маршрут опирается исключительно на проверенные шедевры постоянной экспозиции музея
+        </NeoButton>
+        <p className="mt-3 text-center text-xs text-faint">
+          {interestsDone
+            ? "Маршрут опирается только на проверенные экспонаты каталога музея"
+            : "Начните с тем, которые вам интересны — остальное AI-гид подберёт сам"}
         </p>
       </div>
     </form>

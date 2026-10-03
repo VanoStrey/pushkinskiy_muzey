@@ -52,13 +52,13 @@ export function ArtworkImage({
   return (
     <>
       <div
-        className={`relative overflow-hidden bg-[#ECE6DF] flex items-center justify-center border border-[#E3DDD4] select-none ${className}`}
+        className={`relative overflow-hidden bg-sunken flex items-center justify-center select-none ${className}`}
       >
         {/* Loading skeleton */}
         {isLoading && !hasError && src && (
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-r from-[#ECE6DF] via-[#F4EFEB] to-[#ECE6DF] animate-pulse"
+            className="absolute inset-0 bg-gradient-to-r from-sunken via-ground to-sunken animate-pulse"
           />
         )}
 
@@ -85,7 +85,7 @@ export function ArtworkImage({
             }`}
           >
             <div
-              className={`border border-[#D5CDC2] flex items-center justify-center text-[#899770] shrink-0 ${
+              className={`border border-ink/15 flex items-center justify-center text-accent shrink-0 ${
                 compact ? "w-7 h-7 mb-1" : "w-12 h-12 mb-3"
               }`}
             >
@@ -105,21 +105,21 @@ export function ArtworkImage({
               </svg>
             </div>
             <p
-              className={`font-serif text-[#1A1918] font-semibold leading-tight line-clamp-2 ${
+              className={`font-serif text-ink font-semibold leading-tight line-clamp-2 ${
                 compact ? "text-[10px]" : "text-base sm:text-lg"
               }`}
             >
               {alt}
             </p>
             <p
-              className={`text-[#726E67] font-sans uppercase tracking-wider line-clamp-1 ${
+              className={`text-muted font-sans uppercase tracking-wider line-clamp-1 ${
                 compact ? "text-[8px] mt-0.5" : "text-xs mt-1"
               }`}
             >
               {artist}
             </p>
             {!compact && (
-              <span className="text-[11px] text-[#A29C93] mt-2 border-t border-[#D5CDC2] pt-2">
+              <span className="text-[11px] text-faint mt-2 border-t border-ink/15 pt-2">
                 Оригинал в экспозиции ГМИИ им. А.С. Пушкина
               </span>
             )}
@@ -132,7 +132,7 @@ export function ArtworkImage({
             type="button"
             onClick={() => setIsZoomed(true)}
             aria-label={`Рассмотреть детально: ${alt}`}
-            className="absolute bottom-3 right-3 bg-white/90 hover:bg-white text-[#1A1918] px-2.5 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm flex items-center gap-1.5 transition-all border border-[#E3DDD4] cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
+            className="absolute bottom-3 right-3 bg-surface/90 hover:bg-surface text-ink px-2.5 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm flex items-center gap-1.5 transition-all border border-ink/12 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-accent"
             title="Рассмотреть в высоком разрешении"
           >
             <svg

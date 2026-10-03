@@ -1,3 +1,4 @@
+import { Frame } from "@/shared/ui";
 import type { Stop } from "../model/types";
 import { ArtworkImage } from "./artwork-image";
 
@@ -22,81 +23,65 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
           onClick?.();
         }
       }}
-      className={`group relative text-left bg-white border p-3.5 sm:p-4 transition-all shadow-xs hover:shadow-sm cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770] ${
+      className={`group relative cursor-pointer rounded-[var(--radius-surface)] p-3.5 text-left transition-all duration-200 sm:p-4 ${
         isCompleted
-          ? "border-[#D6E5D8] bg-[#FBFDFB]"
-          : "border-[#E5E1D8] hover:border-[#899770]"
+          ? "bg-ground shadow-[var(--shadow-pressed)]"
+          : "bg-surface shadow-[var(--shadow-raised)] active:shadow-[var(--shadow-pressed)]"
       }`}
     >
-      <div className="flex gap-3.5 sm:gap-4 items-start">
-        {/* Step number badge */}
-        <div className="shrink-0 flex flex-col items-center">
+      <div className="flex items-start gap-3.5 sm:gap-4">
+        {/* Step number */}
+        <div className="flex shrink-0 flex-col items-center">
           <span
-            className={`w-7 h-7 flex items-center justify-center text-xs font-semibold ${
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
               isCompleted
-                ? "bg-[#2E7D32] text-white"
-                : "bg-[#262626] text-white group-hover:bg-[#899770] transition-colors"
+                ? "bg-accent text-white shadow-[var(--shadow-pressed-sm)]"
+                : "bg-ground text-ink shadow-[var(--shadow-raised-sm)]"
             }`}
           >
             {isCompleted ? "✓" : stop.position}
           </span>
-          <span className="text-[10px] text-[#7A756D] mt-1 font-mono uppercase tracking-wider">
-            шаг
-          </span>
+          <span className="wall-label mt-1.5">шаг</span>
         </div>
 
-        {/* Thumbnail */}
-        <div className="w-20 h-24 sm:w-22 sm:h-26 shrink-0 overflow-hidden border border-[#E5E1D8]">
+        {/* Reproduction keeps museum geometry: sharp, shadowed, never rounded */}
+        <Frame className="h-24 w-20 shrink-0 sm:h-26 sm:w-22">
           <ArtworkImage
             src={stop.image_url}
             alt={stop.title}
             artist={stop.artist || "Автор не указан в данных музея"}
             showMagnifyButton={false}
             compact={true}
-            className="w-full h-full"
+            className="h-full w-full"
           />
-        </div>
+        </Frame>
 
-        {/* Text information */}
-        <div className="flex-1 min-w-0">
+        {/* Text */}
+        <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-serif text-base sm:text-lg font-bold text-[#000000] group-hover:text-[#899770] transition-colors leading-snug line-clamp-2">
+            <h3 className="line-clamp-2 font-serif text-base font-bold leading-snug text-ink transition-colors group-hover:text-accent sm:text-lg">
               {stop.title}
             </h3>
-            {isCompleted && (
-              <span className="shrink-0 text-[10px] bg-[#EEF7ED] text-[#2E7D32] font-semibold px-2 py-0.5 border border-[#C8E6C9]">
-                Пройдено
-              </span>
-            )}
+            {isCompleted && <span className="wall-label shrink-0 text-accent">пройдено</span>}
           </div>
 
-          <p className="text-xs text-[#262626] mt-0.5 font-sans font-medium line-clamp-1">
-            {stop.artist || "Автор не указан в данных музея"}, {stop.date || "Дата не указана в данных музея"}
+          <p className="mt-0.5 line-clamp-1 text-xs font-medium text-muted">
+            {stop.artist || "Автор не указан в данных музея"},{" "}
+            {stop.date || "Дата не указана в данных музея"}
           </p>
 
           {stop.location && (
-            <p className="text-[11px] text-[#7A756D] mt-1 flex items-center gap-1 line-clamp-1">
-              <svg
-                className="w-3 h-3 text-[#899770] shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-              </svg>
+            <p className="mt-1 line-clamp-1 flex items-center gap-1 text-[11px] text-faint">
+              <span aria-hidden="true" className="text-accent">
+                ◈
+              </span>
               <span>{stop.location}</span>
             </p>
           )}
 
           {stop.personalization_reason && stop.personalization_reason.trim() !== "" && (
-            <div className="mt-2 bg-[#F4F6F2] border-l-2 border-[#899770] px-2.5 py-1.5 text-[11px] text-[#262626] leading-relaxed line-clamp-2">
-              <span className="font-bold text-[#5A6844]">В вашем маршруте: </span>
+            <div className="mt-2.5 line-clamp-2 rounded-[var(--radius-control)] bg-ground px-2.5 py-2 text-[11px] leading-relaxed text-muted shadow-[var(--shadow-pressed-sm)]">
+              <span className="font-bold text-accent-ink">В вашем маршруте: </span>
               {stop.personalization_reason}
             </div>
           )}
