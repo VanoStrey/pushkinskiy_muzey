@@ -1,5 +1,6 @@
 import type { RouteGenerateResponse } from "@/entities/route";
 import { ArtworkImage } from "@/entities/route";
+import { IconArrowRight, IconCheck, IconDot, IconMuseum } from "@/shared/ui";
 
 interface TourCompletionProps {
   route: RouteGenerateResponse;
@@ -35,10 +36,10 @@ export function TourCompletion({
       {/* Header */}
       <div className="bg-surface border border-ink/12 p-6 sm:p-8 shadow-[var(--shadow-raised-sm)]">
         <div
-          className="w-16 h-16 bg-ground border-2 border-accent text-accent flex items-center justify-center mx-auto text-2xl mb-4"
+          className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[var(--radius-control)] bg-ground text-accent shadow-[var(--shadow-pressed)]"
           aria-hidden="true"
         >
-          🏛️
+          <IconMuseum size={30} />
         </div>
 
         <span className="text-xs uppercase tracking-widest text-accent font-semibold">
@@ -140,7 +141,7 @@ export function TourCompletion({
                             : "Загадка пройдена"
                         }
                       >
-                        {isDone ? "✓" : "•"}
+                        {isDone ? <IconCheck size={13} /> : <IconDot size={13} />}
                       </span>
                     )}
                   </div>
@@ -153,7 +154,7 @@ export function TourCompletion({
                 </div>
                 <span className="text-[10px] text-accent font-medium mt-2 inline-flex items-center gap-1">
                   <span>Пересмотреть</span>
-                  <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                  <IconArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
             );

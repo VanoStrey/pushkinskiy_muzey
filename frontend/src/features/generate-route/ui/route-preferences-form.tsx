@@ -1,5 +1,18 @@
 import { useState } from "react";
-import { NeoButton, NeoPanel, NeoTile } from "@/shared/ui";
+import type { ReactNode } from "react";
+import {
+  IconArrowRight,
+  IconBreak,
+  IconCaution,
+  IconCouple,
+  IconDirect,
+  IconFamily,
+  IconFriends,
+  IconSolo,
+  NeoButton,
+  NeoPanel,
+  NeoTile,
+} from "@/shared/ui";
 import type {
   DifficultyLevel,
   GroupType,
@@ -31,11 +44,13 @@ const DURATION_OPTIONS = [
   { minutes: 180, label: "3+ часа", stopsHint: "6 шедевров (полное погружение)" },
 ];
 
-const GROUP_OPTIONS: { id: GroupType; label: string; icon: string }[] = [
-  { id: "solo", label: "Один / одна", icon: "👤" },
-  { id: "friends", label: "С друзьями", icon: "👥" },
-  { id: "family", label: "С семьей", icon: "👨‍👩‍👧" },
-  { id: "couple", label: "Пара", icon: "✨" },
+// The audience selector is the museum's own colonnade taken apart: one column
+// for a lone visitor, two under a shared lintel for a couple, and so on.
+const GROUP_OPTIONS: { id: GroupType; label: string; icon: ReactNode }[] = [
+  { id: "solo", label: "Один / одна", icon: <IconSolo /> },
+  { id: "friends", label: "С друзьями", icon: <IconFriends /> },
+  { id: "family", label: "С семьей", icon: <IconFamily /> },
+  { id: "couple", label: "Пара", icon: <IconCouple /> },
 ];
 
 const DIFFICULTY_OPTIONS: { id: DifficultyLevel; label: string; desc: string }[] = [
@@ -373,14 +388,16 @@ export function RoutePreferencesForm({
             role="radio"
             selected={includeBreak === true}
             onClick={() => handleSelectBreak(true)}
-            label="☕ С паузой на отдых"
+            label="С паузой на отдых"
+            icon={<IconBreak />}
             hint="Перерыв в середине пути, в Итальянском дворике"
           />
           <NeoTile
             role="radio"
             selected={includeBreak === false}
             onClick={() => handleSelectBreak(false)}
-            label="⚡ Без перерыва"
+            label="Без перерыва"
+            icon={<IconDirect />}
             hint="Непрерывный просмотр шедевров"
           />
         </div>
@@ -392,9 +409,7 @@ export function RoutePreferencesForm({
           role="alert"
           className="flex items-start gap-3 rounded-[var(--radius-control)] bg-gilt-soft p-4 shadow-[var(--shadow-raised-sm)]"
         >
-          <span className="shrink-0 text-lg" aria-hidden="true">
-            ⚠️
-          </span>
+          <IconCaution className="mt-0.5 shrink-0 text-gilt" />
           <div className="flex-1">
             <div className="text-sm font-bold text-ink">Заполните все пункты анкеты</div>
             <div className="mt-0.5 text-xs leading-relaxed text-muted">{validationError}</div>
@@ -410,7 +425,7 @@ export function RoutePreferencesForm({
           ) : (
             <>
               <span>Создать мой персональный маршрут</span>
-              <span aria-hidden="true">→</span>
+              <IconArrowRight />
             </>
           )}
         </NeoButton>

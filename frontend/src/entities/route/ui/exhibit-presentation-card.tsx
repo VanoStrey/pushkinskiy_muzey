@@ -1,4 +1,12 @@
-import { Frame, NeoButton, WallLabel } from "@/shared/ui";
+import {
+  Frame,
+  IconExternal,
+  IconLookCloser,
+  IconPlace,
+  IconPlan,
+  NeoButton,
+  WallLabel,
+} from "@/shared/ui";
 import type { Stop } from "../model/types";
 import { ArtworkImage } from "./artwork-image";
 
@@ -32,9 +40,7 @@ export function ExhibitPresentationCard({
           </span>
           {stop.location && (
             <span className="flex items-center gap-1 font-medium text-muted">
-              <span aria-hidden="true" className="text-accent">
-                ◈
-              </span>
+              <IconPlace size={14} className="shrink-0 text-accent" />
               <span>{stop.location}</span>
             </span>
           )}
@@ -42,7 +48,7 @@ export function ExhibitPresentationCard({
 
         {onOpenMap && (
           <NeoButton variant="quiet" onClick={onOpenMap} ariaLabel="Показать этот зал на схеме музея">
-            <span aria-hidden="true">🗺</span>
+            <IconPlan size={15} />
             <span className="font-semibold">План этажа</span>
           </NeoButton>
         )}
@@ -116,7 +122,7 @@ export function ExhibitPresentationCard({
               className="inline-flex items-center gap-1 pt-1 text-xs font-semibold text-accent underline underline-offset-4 hover:text-accent-hover"
             >
               <span>Официальная карточка в каталоге ГМИИ им. А.С. Пушкина</span>
-              <span aria-hidden="true">↗</span>
+              <IconExternal size={13} />
             </a>
           )}
         </div>
@@ -125,9 +131,7 @@ export function ExhibitPresentationCard({
         {stop.look_closer && stop.look_closer.trim() !== "" && (
           <div className="rounded-[var(--radius-control)] bg-ground p-4 shadow-[var(--shadow-raised-sm)]">
             <div className="wall-label mb-1.5 flex items-center gap-2">
-              <span className="text-sm" aria-hidden="true">
-                🔍
-              </span>
+              <IconLookCloser size={16} />
               <span>Взгляните ближе: совет куратора</span>
             </div>
             <p className="text-sm leading-relaxed text-ink">{stop.look_closer}</p>

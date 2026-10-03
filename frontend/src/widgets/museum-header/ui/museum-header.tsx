@@ -1,4 +1,4 @@
-import { NeoButton } from "@/shared/ui";
+import { IconExternal, NeoButton } from "@/shared/ui";
 
 interface MuseumHeaderProps {
   onReset?: () => void;
@@ -68,7 +68,7 @@ export function MuseumHeader({ onReset, showReset = false }: MuseumHeaderProps) 
             className="hidden items-center gap-1 px-2 py-1.5 text-xs font-semibold text-museum-dark transition-colors hover:text-museum-black sm:inline-flex"
           >
             <span>Официальный сайт</span>
-            <span aria-hidden="true">↗</span>
+            <IconExternal size={13} />
           </a>
         </div>
       </div>

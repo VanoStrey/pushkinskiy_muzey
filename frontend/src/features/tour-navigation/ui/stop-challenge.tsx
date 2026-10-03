@@ -1,6 +1,7 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import type { Challenge } from "@/entities/route";
-import { NeoButton, NeoPanel } from "@/shared/ui";
+import { IconCelebrate, IconCheck, IconClose, IconHint, NeoButton, NeoPanel } from "@/shared/ui";
 
 interface StopChallengeProps {
   challenge: Challenge;
@@ -87,19 +88,19 @@ export function StopChallenge({
           // surface, and the right one keeps a visible accent ring.
           let look = "bg-ground shadow-[var(--shadow-raised)] text-ink cursor-pointer";
           let marker = "bg-ground text-muted shadow-[var(--shadow-raised-sm)]";
-          let glyph: string = letterLabel;
+          let glyph: ReactNode = letterLabel;
 
           if (isAnswered) {
             if (isCorrect) {
               look =
                 "bg-correct/12 shadow-[var(--shadow-pressed)] ring-1 ring-correct/50 text-ink font-medium";
               marker = "bg-correct text-white";
-              glyph = "✓";
+              glyph = <IconCheck size={14} />;
             } else if (isThisOptionSelected) {
               look =
                 "bg-wrong/12 shadow-[var(--shadow-pressed)] ring-1 ring-wrong/50 text-ink";
               marker = "bg-wrong text-white";
-              glyph = "✕";
+              glyph = <IconClose size={14} />;
             } else {
               look = "bg-ground shadow-[var(--shadow-pressed-sm)] text-faint opacity-70";
               marker = "bg-ground text-faint shadow-[var(--shadow-pressed-sm)]";
@@ -143,16 +144,12 @@ export function StopChallenge({
           <div className="mb-1 flex items-center gap-1.5 text-sm font-bold">
             {selectedOption === challenge.correct_option ? (
               <>
-                <span className="text-base" aria-hidden="true">
-                  ✨
-                </span>
+                <IconCelebrate size={17} className="shrink-0" />
                 <span>Точно подмечено! Правильный ответ.</span>
               </>
             ) : (
               <>
-                <span className="text-base" aria-hidden="true">
-                  💡
-                </span>
+                <IconHint size={17} className="shrink-0" />
                 <span>Не совсем так, но это отличный повод приглядеться:</span>
               </>
             )}

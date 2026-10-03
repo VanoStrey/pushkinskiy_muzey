@@ -3,6 +3,20 @@ import type { RouteGenerateRequest, RouteGenerateResponse, TourStage } from "@/e
 import { StopCard, clearTourState, loadTourState, saveTourState } from "@/entities/route";
 import { RoutePreferencesForm, requestGenerateRoute } from "@/features/generate-route";
 import { InteractiveMap, StopViewer, TourCompletion } from "@/features/tour-navigation";
+import {
+  IconArrowLeft,
+  IconArtwork,
+  IconBreak,
+  IconCaution,
+  IconCelebrate,
+  IconCheck,
+  IconClose,
+  IconDuration,
+  IconMuseum,
+  IconObserve,
+  IconPlan,
+  IconSpark,
+} from "@/shared/ui";
 import { MuseumHeader } from "@/widgets/museum-header";
 
 type ViewStage = "preferences" | "generating" | "overview" | "tour" | "completed";
@@ -247,7 +261,7 @@ export function HomePage() {
             className="mb-6 p-4 bg-wrong/10 border border-wrong/40 text-wrong flex items-start justify-between gap-3 text-sm shadow-[var(--shadow-raised-sm)] animate-in fade-in"
           >
             <div className="flex items-start gap-3">
-              <span className="text-xl shrink-0" aria-hidden="true">⚠️</span>
+              <IconCaution size={22} className="shrink-0 text-gilt" />
               <div>
                 <p className="font-semibold text-wrong">Ошибка при построении маршрута</p>
                 <p className="text-xs text-wrong mt-0.5 leading-relaxed">{errorMessage}</p>
@@ -268,7 +282,7 @@ export function HomePage() {
                 aria-label="Скрыть сообщение об ошибке"
                 className="p-1 text-wrong hover:bg-wrong/15 transition-colors cursor-pointer"
               >
-                ✕
+                <IconClose size={16} />
               </button>
             </div>
           </div>
@@ -306,7 +320,7 @@ export function HomePage() {
 
             <div className="bg-surface shadow-[var(--shadow-raised)] rounded-[var(--radius-surface)] p-5 text-xs text-muted text-left space-y-2 shadow-[var(--shadow-raised-sm)]">
               <div className="flex items-center gap-2 text-accent font-semibold">
-                <span aria-hidden="true">✦</span>
+                <IconSpark size={16} />
                 <span>Искусственный интеллект музея</span>
               </div>
               <p className="leading-relaxed">
@@ -324,7 +338,7 @@ export function HomePage() {
                 onClick={handleCancelGenerating}
                 className="text-xs text-muted hover:text-ink py-2 px-4 border border-ink/12 bg-surface transition-colors cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-accent"
               >
-                ← Вернуться к настройкам параметров
+                <IconArrowLeft size={16} /> Вернуться к настройкам параметров
               </button>
             </div>
           </div>
@@ -336,7 +350,7 @@ export function HomePage() {
             {/* Empty route state protection */}
             {stops.length === 0 ? (
               <div className="bg-surface shadow-[var(--shadow-raised)] rounded-[var(--radius-surface)] p-8 text-center space-y-4 shadow-[var(--shadow-raised-sm)]">
-                <span className="text-3xl" aria-hidden="true">🏛️</span>
+                <IconMuseum size={34} className="mx-auto text-muted" />
                 <h2 className="font-serif text-2xl font-bold text-ink">
                   Маршрут не содержит остановок
                 </h2>
@@ -357,12 +371,12 @@ export function HomePage() {
                 <div className="bg-surface shadow-[var(--shadow-raised)] rounded-[var(--radius-surface)] p-6 sm:p-8 shadow-[var(--shadow-raised-sm)]">
                   {route.is_fallback ? (
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gilt-soft border border-ink/12 text-[11px] font-semibold text-ink mb-3">
-                      <span aria-hidden="true">🏛️</span>
+                      <IconMuseum size={14} />
                       <span>Официальный каталог · нейтральный маршрут</span>
                     </div>
                   ) : (
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-ground border border-accent/30 text-[11px] font-semibold text-accent mb-3">
-                      <span aria-hidden="true">✨</span>
+                      <IconSpark size={14} />
                       <span>Сформировано Yandex AI Studio</span>
                     </div>
                   )}
@@ -378,22 +392,22 @@ export function HomePage() {
                   {/* Meta tags */}
                   <div className="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-ink/12 text-xs text-muted">
                     <span className="bg-surface px-3 py-1.5 border border-ink/12 font-medium text-accent">
-                      ⏱️ {route.duration_minutes >= 180 ? "3+ часа (полное погружение)" : `~${route.duration_minutes} минут`}
+                      <IconDuration size={14} /> {route.duration_minutes >= 180 ? "3+ часа (полное погружение)" : `~${route.duration_minutes} минут`}
                     </span>
                     <span className="bg-surface px-3 py-1.5 border border-ink/12 font-medium">
-                      🖼️ {stops.length} остановок
+                      <IconArtwork size={14} /> {stops.length} остановок
                     </span>
                     {route.has_break && (
                       <span className="bg-gilt-soft text-ink px-3 py-1.5 border border-gilt/40 font-medium">
-                        ☕ Перерыв на отдых в зале 15
+                        <IconBreak size={14} /> Перерыв на отдых в зале 15
                       </span>
                     )}
                     <span className="bg-surface px-3 py-1.5 border border-ink/12 font-medium">
-                      👁️ Задания-наблюдения без оценки
+                      <IconObserve size={14} /> Задания-наблюдения без оценки
                     </span>
                     {answeredStopsCount > 0 && (
                       <span className="bg-correct/12 text-correct px-3 py-1.5 border border-correct/40 font-medium">
-                        ✓ Пройдено: {answeredStopsCount} из {stops.length}
+                        <IconCheck size={14} /> Пройдено: {answeredStopsCount} из {stops.length}
                       </span>
                     )}
                   </div>
@@ -403,7 +417,7 @@ export function HomePage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h2 className="font-serif text-xl font-bold text-ink flex items-center gap-2">
-                      <span>🗺️ Интерактивный план музея</span>
+                      <IconPlan size={20} /><span>Интерактивный план музея</span>
                     </h2>
                     <span className="text-xs text-muted">
                       {stops.length} остановок на схеме этажей
@@ -442,7 +456,7 @@ export function HomePage() {
                           <div className="bg-gilt-soft border-2 border-dashed border-gilt p-4 sm:p-5 shadow-[var(--shadow-raised-sm)] space-y-2">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div className="flex items-center gap-2 text-ink font-bold text-sm">
-                                <span className="text-base" aria-hidden="true">☕</span>
+                                <IconBreak size={18} className="text-gilt" />
                                 <span>{route.break_info?.title || "Перерыв на отдых"} (~{route.break_info?.duration_minutes || 15} мин)</span>
                               </div>
                               <span className="text-[11px] font-semibold text-ink bg-gilt-soft px-2.5 py-1 border border-gilt/40">
@@ -471,7 +485,7 @@ export function HomePage() {
                       className="w-full bg-correct hover:bg-correct text-white py-4 px-6 min-h-[52px] font-medium text-base sm:text-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-correct"
                     >
                       <span>Все остановки пройдены! Посмотреть итоги</span>
-                      <span aria-hidden="true">🎉</span>
+                      <IconCelebrate size={18} />
                     </button>
                   ) : (
                     <button
@@ -504,7 +518,7 @@ export function HomePage() {
               dismissedBreakIndex !== currentStopIndex && (
                 <div className="max-w-2xl lg:max-w-none mx-auto bg-gilt-soft border border-gilt p-3.5 sm:p-4 text-xs text-ink flex flex-col sm:flex-row items-start justify-between gap-3 shadow-[var(--shadow-raised-sm)] animate-in fade-in">
                   <div className="flex items-start gap-3">
-                    <span className="text-lg shrink-0" aria-hidden="true">☕</span>
+                    <IconBreak size={20} className="shrink-0 text-gilt" />
                     <div className="space-y-1">
                       <div className="font-bold text-sm text-ink">
                         Рекомендуемая пауза на отдых: Итальянский дворик (Зал 15)
@@ -521,14 +535,14 @@ export function HomePage() {
                       onClick={() => setIsMapOpenMobile(true)}
                       className="px-2.5 py-1.5 border border-gilt bg-surface text-ink font-semibold text-xs hover:bg-gilt-soft transition-colors cursor-pointer"
                     >
-                      План зала 15 🗺️
+                      План зала 15
                     </button>
                     <button
                       type="button"
                       onClick={() => setDismissedBreakIndex(currentStopIndex)}
                       className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white font-semibold text-xs transition-colors cursor-pointer"
                     >
-                      Продолжить экскурсию ✓
+                      Продолжить экскурсию
                     </button>
                   </div>
                 </div>
@@ -591,14 +605,14 @@ export function HomePage() {
                 <div className="bg-surface w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in">
                   <div className="p-3 sm:p-4 border-b border-ink/12 flex items-center justify-between bg-ground">
                     <div className="font-serif font-bold text-sm sm:text-base text-ink flex items-center gap-1.5">
-                      <span>🗺️ План Главного здания (Волхонка 12)</span>
+                      <IconPlan size={18} /><span>План Главного здания (Волхонка 12)</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsMapOpenMobile(false)}
                       className="text-xs text-muted hover:text-ink px-3 py-1.5 border border-ink/12 bg-surface cursor-pointer font-medium hover:border-accent"
                     >
-                      Вернуться к экспонату ✕
+                      Вернуться к экспонату
                     </button>
                   </div>
                   <div className="overflow-y-auto p-3">
@@ -652,8 +666,8 @@ export function HomePage() {
             onClick={(e) => e.stopPropagation()}
             className="bg-surface max-w-sm w-full p-6 space-y-4 shadow-xl border border-ink/12"
           >
-            <div className="w-12 h-12 bg-ground text-accent flex items-center justify-center text-xl mx-auto">
-              ⚠️
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[var(--radius-control)] bg-ground text-gilt shadow-[var(--shadow-pressed-sm)]">
+              <IconCaution size={24} />
             </div>
             <div className="text-center">
               <h2 id="confirm-modal-title" className="font-serif text-xl font-bold text-ink">

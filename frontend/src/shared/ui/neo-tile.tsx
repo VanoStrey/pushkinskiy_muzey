@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { IconCheck } from "./icons";
 
 interface NeoTileProps {
   /** Selected tiles are pressed into the surface instead of merely recoloured. */
@@ -9,7 +10,7 @@ interface NeoTileProps {
   role?: "checkbox" | "radio" | "button";
   label: string;
   hint?: string;
-  icon?: string;
+  icon?: ReactNode;
   /** Keeps the pressed look but drops the pointer affordance (answered quiz). */
   locked?: boolean;
   tone?: "neutral" | "correct" | "wrong";
@@ -64,7 +65,10 @@ export function NeoTile({
     >
       <span className="flex items-start gap-2.5">
         {icon && (
-          <span aria-hidden="true" className="text-lg leading-none">
+          <span
+            aria-hidden="true"
+            className={`mt-0.5 shrink-0 leading-none ${selected ? "text-accent" : "text-muted"}`}
+          >
             {icon}
           </span>
         )}
@@ -79,9 +83,7 @@ export function NeoTile({
         </span>
         {/* No checkbox glyph: being pressed into the surface is the selected state. */}
         {selected && (
-          <span aria-hidden="true" className="mt-0.5 shrink-0 text-sm text-accent">
-            ✓
-          </span>
+          <IconCheck size={15} className="mt-0.5 shrink-0 text-accent" />
         )}
       </span>
     </button>
