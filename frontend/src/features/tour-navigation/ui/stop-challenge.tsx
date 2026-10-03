@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Challenge } from "@/entities/route";
+import { NeoButton, NeoPanel } from "@/shared/ui";
 
 interface StopChallengeProps {
   challenge: Challenge;
@@ -29,24 +30,26 @@ export function StopChallenge({
 
   if (challenge.type === "observation") {
     return (
-      <div className="bg-[#FAF7F2] border border-[#E3DDD4] p-5 sm:p-6 shadow-xs" role="region" aria-label="Задание-наблюдение">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#899770] mb-2">Задание-наблюдение · без оценки</p>
-        <h3 className="font-serif text-lg sm:text-xl font-bold text-[#1A1918] mb-4 leading-snug">{challenge.question}</h3>
+      <NeoPanel role="region" className="space-y-3">
+        <p className="wall-label text-accent-ink">Задание-наблюдение · без оценки</p>
+        <h3 className="font-serif text-lg font-bold leading-snug text-ink sm:text-xl">
+          {challenge.question}
+        </h3>
         {isAnswered ? (
-          <p role="status" className="text-sm text-[#2E6B35]">Задание отмечено выполненным. Правильного ответа здесь нет.</p>
+          <p role="status" className="text-sm text-accent-ink">
+            Задание отмечено выполненным. Правильного ответа здесь нет.
+          </p>
         ) : (
-          <button
-            type="button"
+          <NeoButton
             onClick={() => {
               setSelectedOption(null);
               onAnswer?.(null, null);
             }}
-            className="px-4 py-3 min-h-[48px] bg-[#899770] text-white text-sm font-medium hover:bg-[#75835C] focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
           >
             Отметить задание выполненным
-          </button>
+          </NeoButton>
         )}
-      </div>
+      </NeoPanel>
     );
   }
 
@@ -64,44 +67,42 @@ export function StopChallenge({
   const options = Array.isArray(challenge.options) ? challenge.options : [];
 
   return (
-    <div
-      className="bg-[#FAF7F2] border border-[#E3DDD4] p-5 sm:p-6 shadow-xs"
-      role="region"
-      aria-label="Интерактивное задание экспоната"
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <span className="w-2 h-2 bg-[#899770]" aria-hidden="true" />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#899770]">
-          Интерактивное задание экспоната
-        </span>
+    <NeoPanel role="region" className="space-y-4">
+      <div className="flex items-center gap-2">
+        <span className="inline-block h-2 w-2 bg-accent" aria-hidden="true" />
+        <span className="wall-label text-accent-ink">Интерактивное задание экспоната</span>
       </div>
 
-      <h3 className="font-serif text-lg sm:text-xl font-bold text-[#1A1918] mb-4 leading-snug">
+      <h3 className="font-serif text-lg font-bold leading-snug text-ink sm:text-xl">
         {challenge.question}
       </h3>
 
-      <div
-        className="space-y-2.5"
-        role="radiogroup"
-        aria-label="Варианты ответа на загадку"
-      >
+      <div className="space-y-2.5" role="radiogroup" aria-label="Варианты ответа на загадку">
         {options.map((optionText, idx) => {
           const isThisOptionSelected = selectedOption === idx;
           const isCorrect = idx === challenge.correct_option;
           const letterLabel = CYRILLIC_LABELS[idx] || String.fromCharCode(65 + idx);
 
-          let optionStyle =
-            "bg-white border-[#E8E3DC] hover:border-[#899770] text-[#33312E] hover:bg-[#FDFBF7]";
+          // Unanswered options stand proud; once answered they settle into the
+          // surface, and the right one keeps a visible accent ring.
+          let look = "bg-ground shadow-[var(--shadow-raised)] text-ink cursor-pointer";
+          let marker = "bg-ground text-muted shadow-[var(--shadow-raised-sm)]";
+          let glyph: string = letterLabel;
 
           if (isAnswered) {
             if (isCorrect) {
-              optionStyle =
-                "bg-[#EEF7ED] border-[#2E7D32] text-[#1B5E20] font-medium ring-1 ring-[#2E7D32]";
+              look =
+                "bg-correct/12 shadow-[var(--shadow-pressed)] ring-1 ring-correct/50 text-ink font-medium";
+              marker = "bg-correct text-white";
+              glyph = "✓";
             } else if (isThisOptionSelected) {
-              optionStyle =
-                "bg-[#FDF2F2] border-[#D32F2F] text-[#B71C1C] ring-1 ring-[#D32F2F]";
+              look =
+                "bg-wrong/12 shadow-[var(--shadow-pressed)] ring-1 ring-wrong/50 text-ink";
+              marker = "bg-wrong text-white";
+              glyph = "✕";
             } else {
-              optionStyle = "bg-white/70 border-[#E8E3DC] text-[#7A756D] opacity-60";
+              look = "bg-ground shadow-[var(--shadow-pressed-sm)] text-faint opacity-70";
+              marker = "bg-ground text-faint shadow-[var(--shadow-pressed-sm)]";
             }
           }
 
@@ -114,19 +115,13 @@ export function StopChallenge({
               aria-disabled={isAnswered}
               disabled={isAnswered}
               onClick={() => handleSelect(idx)}
-              className={`w-full text-left p-3.5 sm:p-4 border text-sm transition-all flex items-start gap-3 cursor-pointer disabled:cursor-default focus:outline-hidden focus:ring-2 focus:ring-[#899770] min-h-[48px] ${optionStyle}`}
+              className={`flex min-h-[48px] w-full items-start gap-3 rounded-[var(--radius-control)] p-3.5 text-left text-sm transition-all duration-200 disabled:cursor-default sm:p-4 ${look}`}
             >
               <span
-                className={`w-6 h-6 shrink-0 flex items-center justify-center text-xs font-semibold mt-0.5 border ${
-                  isAnswered && isCorrect
-                    ? "bg-[#2E7D32] text-white border-[#2E7D32]"
-                    : isAnswered && isThisOptionSelected
-                    ? "bg-[#D32F2F] text-white border-[#D32F2F]"
-                    : "border-[#C4BCB1] text-[#5C5954] bg-[#F7F4EE]"
-                }`}
+                className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${marker}`}
                 aria-hidden="true"
               >
-                {isAnswered && isCorrect ? "✓" : isAnswered && isThisOptionSelected ? "✕" : letterLabel}
+                {glyph}
               </span>
               <span className="flex-1 leading-relaxed">{optionText}</span>
             </button>
@@ -134,33 +129,37 @@ export function StopChallenge({
         })}
       </div>
 
-      {/* Feedback & Explanation */}
+      {/* Feedback & explanation */}
       {isAnswered && (
         <div
           role="status"
           aria-live="polite"
-          className={`mt-4 p-4 border text-xs sm:text-sm leading-relaxed transition-all animate-in fade-in duration-200 ${
+          className={`rounded-[var(--radius-control)] p-4 text-xs leading-relaxed shadow-[var(--shadow-pressed-sm)] sm:text-sm ${
             selectedOption === challenge.correct_option
-              ? "bg-[#F4F9F3] border-[#C8E6C9] text-[#1B5E20]"
-              : "bg-[#FFF9F2] border-[#FFE0B2] text-[#8D4B00]"
+              ? "bg-correct/10 text-ink"
+              : "bg-gilt-soft text-ink"
           }`}
         >
-          <div className="font-bold flex items-center gap-1.5 mb-1 text-sm">
+          <div className="mb-1 flex items-center gap-1.5 text-sm font-bold">
             {selectedOption === challenge.correct_option ? (
-              <span className="flex items-center gap-1.5">
-                <span className="text-base">✨</span>
+              <>
+                <span className="text-base" aria-hidden="true">
+                  ✨
+                </span>
                 <span>Точно подмечено! Правильный ответ.</span>
-              </span>
+              </>
             ) : (
-              <span className="flex items-center gap-1.5">
-                <span className="text-base">💡</span>
+              <>
+                <span className="text-base" aria-hidden="true">
+                  💡
+                </span>
                 <span>Не совсем так, но это отличный повод приглядеться:</span>
-              </span>
+              </>
             )}
           </div>
-          {challenge.explanation && <p className="mt-1 text-[#383531]">{challenge.explanation}</p>}
+          {challenge.explanation && <p className="mt-1 text-muted">{challenge.explanation}</p>}
         </div>
       )}
-    </div>
+    </NeoPanel>
   );
 }

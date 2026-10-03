@@ -32,65 +32,144 @@
   font-display: swap;
 }
 
+/*
+ * "Soft architecture": the museum's restrained, rectangular language for
+ * content (reproductions and text read as frames and plinths) and a soft
+ * neumorphic language for anything the visitor touches. Neumorphism needs a
+ * mid-tone ground — both the light and the dark shadow are mixed from it — so
+ * the page sits on warm sand rather than white.
+ */
 :root {
-  --background: #FFFFFF;
-  --foreground: #262626;
-  --header-khaki: #ADA589;
-  --header-khaki-hover: #9E9576;
-  --accent-green: #899770;
-  --accent-green-hover: #75835C;
+  --ground: #efeae2;
+  --surface: #f6f2eb;
+  --sunken: #e4ded3;
+  --foreground: #231f1a;
+  --muted: #6d675d;
+  --faint: #938c80;
+
+  --shadow-light: #fdfbf7;
+  --shadow-dark: #cfc6b6;
+
+  /* The museum's own header khaki, kept as it is on pushkinmuseum.art. */
+  --header-khaki: #ada589;
+  --header-khaki-hover: #9e9576;
   --museum-black: #000000;
   --museum-dark: #262626;
-  --museum-sand: #F7F5F0;
-  --museum-border: #E5E1D8;
-  --museum-crimson: #899770;
-  --museum-crimson-hover: #75835C;
+
+  --accent: #899770;
+  --accent-hover: #75835c;
+  --accent-ink: #4c5639;
+  --gilt: #c69214;
+  --gilt-soft: #f2e4c4;
+  --correct: #4f7a4a;
+  --wrong: #a4564b;
+
+  /* Museum geometry for content, Yandex-style radii for controls. */
+  --radius-frame: 0px;
+  --radius-control: 14px;
+  --radius-surface: 20px;
+  --radius-pill: 999px;
+
+  --shadow-raised: -5px -5px 12px var(--shadow-light), 5px 5px 14px var(--shadow-dark);
+  --shadow-raised-sm: -3px -3px 7px var(--shadow-light), 3px 3px 8px var(--shadow-dark);
+  --shadow-pressed: inset -4px -4px 9px var(--shadow-light), inset 4px 4px 10px var(--shadow-dark);
+  --shadow-pressed-sm: inset -2px -2px 5px var(--shadow-light), inset 2px 2px 6px var(--shadow-dark);
+  --shadow-float: -10px -10px 24px rgba(253, 251, 247, 0.9), 14px 18px 40px rgba(88, 78, 60, 0.28);
+  /* Reproductions keep a directional drop shadow instead of a border, the way
+     the museum's own pages present their tiles. */
+  --shadow-frame: 10px 14px 28px rgba(86, 76, 58, 0.22);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --color-header-khaki: var(--header-khaki);
   --color-header-khaki-hover: var(--header-khaki-hover);
-  --color-accent-green: var(--accent-green);
-  --color-accent-green-hover: var(--accent-green-hover);
   --color-museum-black: var(--museum-black);
   --color-museum-dark: var(--museum-dark);
-  --color-museum-sand: var(--museum-sand);
-  --color-museum-border: var(--museum-border);
-  --color-museum-crimson: var(--accent-green);
-  --color-museum-crimson-hover: var(--accent-green-hover);
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--foreground);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-gilt: var(--gilt);
+  --color-gilt-soft: var(--gilt-soft);
+  --color-correct: var(--correct);
+  --color-wrong: var(--wrong);
+
+  --radius-frame: var(--radius-frame);
+  --radius-control: var(--radius-control);
+  --radius-surface: var(--radius-surface);
+
+  --shadow-raised: var(--shadow-raised);
+  --shadow-raised-sm: var(--shadow-raised-sm);
+  --shadow-pressed: var(--shadow-pressed);
+  --shadow-pressed-sm: var(--shadow-pressed-sm);
+  --shadow-float: var(--shadow-float);
+  --shadow-frame: var(--shadow-frame);
+
   --font-serif: "TT Barrels", "Cormorant Garamond", Georgia, serif;
   --font-sans: "TT Commons Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
+
 body {
-  background: var(--background);
+  background: var(--ground);
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 400ms ease, color 400ms ease;
 }
 
-h1, h2, h3, .font-display {
+h1,
+h2,
+h3,
+.font-display {
   font-family: var(--font-serif);
+  letter-spacing: -0.015em;
 }
 
-/* Architectural sharp corners: strictly zero border-radius everywhere */
-*,
-*::before,
-*::after {
-  border-radius: 0 !important;
+/* Wall label: the museum's own way of captioning an object. */
+.wall-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
-/* Custom scrollbar */
+.hairline {
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--sunken);
 }
 ::-webkit-scrollbar-thumb {
-  background: #ADA589;
+  background: color-mix(in srgb, var(--accent) 70%, var(--shadow-dark));
+  border-radius: var(--radius-pill);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

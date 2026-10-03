@@ -233,7 +233,7 @@ export function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#1A1918]">
+    <div className="min-h-screen flex flex-col bg-ground text-ink">
       <MuseumHeader
         onReset={handleRequestRestart}
         showReset={stage !== "preferences" && stage !== "generating"}
@@ -244,13 +244,13 @@ export function HomePage() {
         {errorMessage && (
           <div
             role="alert"
-            className="mb-6 p-4 bg-[#FDF2F2] border border-[#F5C6CB] text-[#721C24] flex items-start justify-between gap-3 text-sm shadow-xs animate-in fade-in"
+            className="mb-6 p-4 bg-wrong/10 border border-wrong/40 text-wrong flex items-start justify-between gap-3 text-sm shadow-[var(--shadow-raised-sm)] animate-in fade-in"
           >
             <div className="flex items-start gap-3">
               <span className="text-xl shrink-0" aria-hidden="true">⚠️</span>
               <div>
-                <p className="font-semibold text-[#842029]">Ошибка при построении маршрута</p>
-                <p className="text-xs text-[#842029] mt-0.5 leading-relaxed">{errorMessage}</p>
+                <p className="font-semibold text-wrong">Ошибка при построении маршрута</p>
+                <p className="text-xs text-wrong mt-0.5 leading-relaxed">{errorMessage}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -258,7 +258,7 @@ export function HomePage() {
                 type="button"
                 disabled={isGenerating || !preferences}
                 onClick={() => preferences && handleGenerate(preferences)}
-                className="px-3 py-1.5 bg-[#899770] hover:bg-[#75835C] disabled:bg-[#C4BCB1] text-white text-xs font-medium transition-colors cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
+                className="px-3 py-1.5 bg-accent hover:bg-accent-hover disabled:bg-sunken text-white text-xs font-medium transition-colors cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-accent"
               >
                 Повторить
               </button>
@@ -266,7 +266,7 @@ export function HomePage() {
                 type="button"
                 onClick={() => setErrorMessage(null)}
                 aria-label="Скрыть сообщение об ошибке"
-                className="p-1 text-[#842029] hover:bg-[#F8D7DA] transition-colors cursor-pointer"
+                className="p-1 text-wrong hover:bg-wrong/15 transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -287,25 +287,25 @@ export function HomePage() {
         {stage === "generating" && (
           <div className="max-w-md mx-auto py-12 sm:py-16 text-center space-y-6">
             <div
-              className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-[#899770]/20 border-t-[#899770] animate-spin mx-auto"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-accent/20 border-t-accent animate-spin mx-auto"
               role="status"
               aria-label="Генерация маршрута"
             />
             <div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#1A1918]">
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-ink">
                 Составляем ваш маршрут...
               </h1>
               <p
                 role="status"
                 aria-live="polite"
-                className="text-sm text-[#899770] font-medium mt-2 min-h-[24px] transition-all"
+                className="text-sm text-accent font-medium mt-2 min-h-[24px] transition-all"
               >
                 {GENERATING_STEPS[generatingStepIndex]}
               </p>
             </div>
 
-            <div className="bg-white border border-[#E3DDD4] p-5 text-xs text-[#5C5954] text-left space-y-2 shadow-2xs">
-              <div className="flex items-center gap-2 text-[#899770] font-semibold">
+            <div className="bg-surface shadow-[var(--shadow-raised)] rounded-[var(--radius-surface)] p-5 text-xs text-muted text-left space-y-2 shadow-[var(--shadow-raised-sm)]">
+              <div className="flex items-center gap-2 text-accent font-semibold">
                 <span aria-hidden="true">✦</span>
                 <span>Искусственный интеллект музея</span>
               </div>
@@ -322,7 +322,7 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={handleCancelGenerating}
-                className="text-xs text-[#726E67] hover:text-[#1A1918] py-2 px-4 border border-[#E3DDD4] bg-white transition-colors cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
+                className="text-xs text-muted hover:text-ink py-2 px-4 border border-ink/12 bg-surface transition-colors cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-accent"
               >
                 ← Вернуться к настройкам параметров
               </button>
@@ -335,18 +335,18 @@ export function HomePage() {
           <div className="space-y-8 max-w-2xl mx-auto">
             {/* Empty route state protection */}
             {stops.length === 0 ? (
-              <div className="bg-white border border-[#E3DDD4] p-8 text-center space-y-4 shadow-xs">
+              <div className="bg-surface shadow-[var(--shadow-raised)] rounded-[var(--radius-surface)] p-8 text-center space-y-4 shadow-[var(--shadow-raised-sm)]">
                 <span className="text-3xl" aria-hidden="true">🏛️</span>
-                <h2 className="font-serif text-2xl font-bold text-[#1A1918]">
+                <h2 className="font-serif text-2xl font-bold text-ink">
                   Маршрут не содержит остановок
                 </h2>
-                <p className="text-sm text-[#5C5954] max-w-md mx-auto">
+                <p className="text-sm text-muted max-w-md mx-auto">
                   По выбранным критериям не удалось найти подходящие экспонаты в каталоге. Попробуйте изменить параметры или выбрать другие темы.
                 </p>
                 <button
                   type="button"
                   onClick={() => setStage("preferences")}
-                  className="bg-[#899770] text-white px-6 py-3 text-sm font-medium hover:bg-[#75835C] transition-colors cursor-pointer"
+                  className="bg-accent text-white px-6 py-3 text-sm font-medium hover:bg-accent-hover transition-colors cursor-pointer"
                 >
                   Изменить параметры
                 </button>
@@ -354,45 +354,45 @@ export function HomePage() {
             ) : (
               <>
                 {/* Header info */}
-                <div className="bg-white border border-[#E3DDD4] p-6 sm:p-8 shadow-xs">
+                <div className="bg-surface shadow-[var(--shadow-raised)] rounded-[var(--radius-surface)] p-6 sm:p-8 shadow-[var(--shadow-raised-sm)]">
                   {route.is_fallback ? (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FAF5F0] border border-[#E8E3DC] text-[11px] font-semibold text-[#8D4B00] mb-3">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gilt-soft border border-ink/12 text-[11px] font-semibold text-ink mb-3">
                       <span aria-hidden="true">🏛️</span>
                       <span>Официальный каталог · нейтральный маршрут</span>
                     </div>
                   ) : (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F4F6F2] border border-[#DCE4D4] text-[11px] font-semibold text-[#899770] mb-3">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-ground border border-accent/30 text-[11px] font-semibold text-accent mb-3">
                       <span aria-hidden="true">✨</span>
                       <span>Сформировано Yandex AI Studio</span>
                     </div>
                   )}
 
-                  <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1A1918] leading-tight">
+                  <h1 className="font-serif text-3xl sm:text-4xl font-bold text-ink leading-tight">
                     {route.title}
                   </h1>
 
-                  <p className="text-[#5C5954] text-sm sm:text-base mt-3 leading-relaxed">
+                  <p className="text-muted text-sm sm:text-base mt-3 leading-relaxed">
                     {route.intro}
                   </p>
 
                   {/* Meta tags */}
-                  <div className="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-[#E8E3DC] text-xs text-[#5C5954]">
-                    <span className="bg-[#FAF7F2] px-3 py-1.5 border border-[#E3DDD4] font-medium text-[#899770]">
+                  <div className="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-ink/12 text-xs text-muted">
+                    <span className="bg-surface px-3 py-1.5 border border-ink/12 font-medium text-accent">
                       ⏱️ {route.duration_minutes >= 180 ? "3+ часа (полное погружение)" : `~${route.duration_minutes} минут`}
                     </span>
-                    <span className="bg-[#FAF7F2] px-3 py-1.5 border border-[#E3DDD4] font-medium">
+                    <span className="bg-surface px-3 py-1.5 border border-ink/12 font-medium">
                       🖼️ {stops.length} остановок
                     </span>
                     {route.has_break && (
-                      <span className="bg-[#FFF8EE] text-[#8D4B00] px-3 py-1.5 border border-[#E8D4B8] font-medium">
+                      <span className="bg-gilt-soft text-ink px-3 py-1.5 border border-gilt/40 font-medium">
                         ☕ Перерыв на отдых в зале 15
                       </span>
                     )}
-                    <span className="bg-[#FAF7F2] px-3 py-1.5 border border-[#E3DDD4] font-medium">
+                    <span className="bg-surface px-3 py-1.5 border border-ink/12 font-medium">
                       👁️ Задания-наблюдения без оценки
                     </span>
                     {answeredStopsCount > 0 && (
-                      <span className="bg-[#EEF7ED] text-[#2E7D32] px-3 py-1.5 border border-[#C8E6C9] font-medium">
+                      <span className="bg-correct/12 text-correct px-3 py-1.5 border border-correct/40 font-medium">
                         ✓ Пройдено: {answeredStopsCount} из {stops.length}
                       </span>
                     )}
@@ -402,10 +402,10 @@ export function HomePage() {
                 {/* Interactive Museum Vector Plan */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="font-serif text-xl font-bold text-[#1A1918] flex items-center gap-2">
+                    <h2 className="font-serif text-xl font-bold text-ink flex items-center gap-2">
                       <span>🗺️ Интерактивный план музея</span>
                     </h2>
-                    <span className="text-xs text-[#726E67]">
+                    <span className="text-xs text-muted">
                       {stops.length} остановок на схеме этажей
                     </span>
                   </div>
@@ -422,10 +422,10 @@ export function HomePage() {
                 {/* Stops list timeline */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="font-serif text-xl font-bold text-[#1A1918]">
+                    <h2 className="font-serif text-xl font-bold text-ink">
                       План вашего обхода
                     </h2>
-                    <span className="text-xs text-[#726E67]">
+                    <span className="text-xs text-muted">
                       Нажмите на экспонат для перехода
                     </span>
                   </div>
@@ -439,17 +439,17 @@ export function HomePage() {
                           isCompleted={userAnswers[idx] !== undefined}
                         />
                         {route.has_break && route.break_after_stop === idx + 1 && (
-                          <div className="bg-[#FAF5F0] border-2 border-dashed border-[#C69214] p-4 sm:p-5 shadow-2xs space-y-2">
+                          <div className="bg-gilt-soft border-2 border-dashed border-gilt p-4 sm:p-5 shadow-[var(--shadow-raised-sm)] space-y-2">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <div className="flex items-center gap-2 text-[#8D4B00] font-bold text-sm">
+                              <div className="flex items-center gap-2 text-ink font-bold text-sm">
                                 <span className="text-base" aria-hidden="true">☕</span>
                                 <span>{route.break_info?.title || "Перерыв на отдых"} (~{route.break_info?.duration_minutes || 15} мин)</span>
                               </div>
-                              <span className="text-[11px] font-semibold text-[#8D4B00] bg-[#FFF8EE] px-2.5 py-1 border border-[#E8D4B8]">
+                              <span className="text-[11px] font-semibold text-ink bg-gilt-soft px-2.5 py-1 border border-gilt/40">
                                 {route.break_info?.location || "Итальянский дворик (Зал 15)"}
                               </span>
                             </div>
-                            <p className="text-xs text-[#5C5954] leading-relaxed">
+                            <p className="text-xs text-muted leading-relaxed">
                               {route.break_info?.note}
                             </p>
                           </div>
@@ -468,7 +468,7 @@ export function HomePage() {
                         setStage("completed");
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className="w-full bg-[#2E7D32] hover:bg-[#1B5E20] text-white py-4 px-6 min-h-[52px] font-medium text-base sm:text-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#2E7D32]"
+                      className="w-full bg-correct hover:bg-correct text-white py-4 px-6 min-h-[52px] font-medium text-base sm:text-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-correct"
                     >
                       <span>Все остановки пройдены! Посмотреть итоги</span>
                       <span aria-hidden="true">🎉</span>
@@ -477,7 +477,7 @@ export function HomePage() {
                     <button
                       type="button"
                       onClick={() => handleStartTour(isTourInProgress ? nextRecommendedIndex : 0)}
-                      className="w-full bg-[#899770] hover:bg-[#75835C] text-white py-4 px-6 min-h-[52px] font-medium text-base sm:text-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
+                      className="w-full bg-accent hover:bg-accent-hover text-white py-4 px-6 min-h-[52px] font-medium text-base sm:text-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-accent"
                     >
                       <span>
                         {isTourInProgress
@@ -502,14 +502,14 @@ export function HomePage() {
             {route.has_break &&
               route.break_after_stop === currentStopIndex &&
               dismissedBreakIndex !== currentStopIndex && (
-                <div className="max-w-2xl lg:max-w-none mx-auto bg-[#FAF5F0] border border-[#C69214] p-3.5 sm:p-4 text-xs text-[#8D4B00] flex flex-col sm:flex-row items-start justify-between gap-3 shadow-2xs animate-in fade-in">
+                <div className="max-w-2xl lg:max-w-none mx-auto bg-gilt-soft border border-gilt p-3.5 sm:p-4 text-xs text-ink flex flex-col sm:flex-row items-start justify-between gap-3 shadow-[var(--shadow-raised-sm)] animate-in fade-in">
                   <div className="flex items-start gap-3">
                     <span className="text-lg shrink-0" aria-hidden="true">☕</span>
                     <div className="space-y-1">
-                      <div className="font-bold text-sm text-[#8D4B00]">
+                      <div className="font-bold text-sm text-ink">
                         Рекомендуемая пауза на отдых: Итальянский дворик (Зал 15)
                       </div>
-                      <p className="text-[#5C5954] leading-relaxed">
+                      <p className="text-muted leading-relaxed">
                         {route.break_info?.note ||
                           "Буфет в цоколе Главного здания временно закрыт на техобслуживание (по официальным данным музея). В залах 14 и 15 есть удобные диваны для отдыха под естественным освещением."}
                       </p>
@@ -519,14 +519,14 @@ export function HomePage() {
                     <button
                       type="button"
                       onClick={() => setIsMapOpenMobile(true)}
-                      className="px-2.5 py-1.5 border border-[#C69214] bg-white text-[#8D4B00] font-semibold text-xs hover:bg-[#FAF5F0] transition-colors cursor-pointer"
+                      className="px-2.5 py-1.5 border border-gilt bg-surface text-ink font-semibold text-xs hover:bg-gilt-soft transition-colors cursor-pointer"
                     >
                       План зала 15 🗺️
                     </button>
                     <button
                       type="button"
                       onClick={() => setDismissedBreakIndex(currentStopIndex)}
-                      className="px-3 py-1.5 bg-[#899770] hover:bg-[#75835C] text-white font-semibold text-xs transition-colors cursor-pointer"
+                      className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white font-semibold text-xs transition-colors cursor-pointer"
                     >
                       Продолжить экскурсию ✓
                     </button>
@@ -561,9 +561,9 @@ export function HomePage() {
               {/* Desktop Sticky Vector Plan */}
               <div className="hidden lg:block lg:col-span-5 sticky top-20">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-[#5C5954] font-medium px-1">
+                  <div className="flex items-center justify-between text-xs text-muted font-medium px-1">
                     <span>План музея и положение в залах</span>
-                    <span className="text-[#899770] font-semibold">
+                    <span className="text-accent font-semibold">
                       {stops[currentStopIndex].hall_number ? `Зал ${stops[currentStopIndex].hall_number}` : "Главное здание"}
                     </span>
                   </div>
@@ -588,15 +588,15 @@ export function HomePage() {
                 aria-modal="true"
                 aria-label="Интерактивный план музея"
               >
-                <div className="bg-white w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in">
-                  <div className="p-3 sm:p-4 border-b border-[#E8E3DC] flex items-center justify-between bg-[#FAF8F5]">
-                    <div className="font-serif font-bold text-sm sm:text-base text-[#1A1918] flex items-center gap-1.5">
+                <div className="bg-surface w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in">
+                  <div className="p-3 sm:p-4 border-b border-ink/12 flex items-center justify-between bg-ground">
+                    <div className="font-serif font-bold text-sm sm:text-base text-ink flex items-center gap-1.5">
                       <span>🗺️ План Главного здания (Волхонка 12)</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsMapOpenMobile(false)}
-                      className="text-xs text-[#726E67] hover:text-[#1A1918] px-3 py-1.5 border border-[#E3DDD4] bg-white cursor-pointer font-medium hover:border-[#899770]"
+                      className="text-xs text-muted hover:text-ink px-3 py-1.5 border border-ink/12 bg-surface cursor-pointer font-medium hover:border-accent"
                     >
                       Вернуться к экспонату ✕
                     </button>
@@ -650,16 +650,16 @@ export function HomePage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white max-w-sm w-full p-6 space-y-4 shadow-xl border border-[#E3DDD4]"
+            className="bg-surface max-w-sm w-full p-6 space-y-4 shadow-xl border border-ink/12"
           >
-            <div className="w-12 h-12 bg-[#F4F6F2] text-[#899770] flex items-center justify-center text-xl mx-auto">
+            <div className="w-12 h-12 bg-ground text-accent flex items-center justify-center text-xl mx-auto">
               ⚠️
             </div>
             <div className="text-center">
-              <h2 id="confirm-modal-title" className="font-serif text-xl font-bold text-[#1A1918]">
+              <h2 id="confirm-modal-title" className="font-serif text-xl font-bold text-ink">
                 Начать новый маршрут?
               </h2>
-              <p className="text-xs text-[#5C5954] mt-1.5 leading-relaxed">
+              <p className="text-xs text-muted mt-1.5 leading-relaxed">
                 Вы находитесь в процессе прохождения. Если начать заново, текущий прогресс и отметки заданий будут сброшены.
               </p>
             </div>
@@ -667,14 +667,14 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => setShowResetConfirm(false)}
-                className="flex-1 py-3 px-4 border border-[#D5CDC2] text-xs font-semibold text-[#474440] hover:bg-[#F4EFEB] transition-colors cursor-pointer"
+                className="flex-1 py-3 px-4 border border-ink/15 text-xs font-semibold text-muted hover:bg-ground transition-colors cursor-pointer"
               >
                 Продолжить тур
               </button>
               <button
                 type="button"
                 onClick={confirmRestart}
-                className="flex-1 py-3 px-4 bg-[#899770] hover:bg-[#75835C] text-white text-xs font-semibold transition-colors cursor-pointer"
+                className="flex-1 py-3 px-4 bg-accent hover:bg-accent-hover text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Да, начать заново
               </button>
@@ -684,13 +684,13 @@ export function HomePage() {
       )}
 
       {/* Museum Footer */}
-      <footer className="border-t border-[#E8E3DC] bg-[#FAF8F5] py-6 text-center text-xs text-[#8C867E]">
+      <footer className="border-t border-ink/12 bg-ground py-6 text-center text-xs text-faint">
         <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>Государственный музей изобразительных искусств имени А.С. Пушкина</span>
           <div className="flex items-center gap-4">
             <a
               href="/api/docs"
-              className="text-[#5C5954] hover:text-[#899770] transition-colors"
+              className="text-muted hover:text-accent transition-colors"
             >
               API Документация
             </a>
@@ -698,7 +698,7 @@ export function HomePage() {
               href="https://pushkinmuseum.art/open_data/index.php?lang=ru"
               target="_blank"
               rel="noreferrer"
-              className="text-[#5C5954] hover:text-[#899770] transition-colors"
+              className="text-muted hover:text-accent transition-colors"
             >
               Открытые данные музея
             </a>
