@@ -42,9 +42,11 @@ jobs:
             '!f() { printf "username=git\\npassword=%s\\n" "$SOURCECRAFT_PAT"; }; f'
           trap 'git config --unset credential.helper || true' EXIT
 
-          # Keep the SourceCraft repository's existing history. If this is the
-          # first sync, Git will make a merge commit; conflicting changes stop
-          # the workflow before any push.
+          # Keep the SourceCraft repository's existing history. The initial
+          # repositories were created from different starter templates, so
+          # shared paths can be add/add conflicts. For those known paths the
+          # GitHub main version is the canonical museum application and
+          # deployment configuration. Any new/unreviewed conflict stops here.
           git fetch --no-tags sourcecraft refs/heads/main:refs/remotes/sourcecraft/main
           if git merge-base --is-ancestor sourcecraft/main HEAD; then
             echo "GitHub main already contains SourceCraft main."
@@ -56,7 +58,47 @@ jobs:
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               merge --no-edit --no-ff --allow-unrelated-histories \
               sourcecraft/main \
-              -m "Merge SourceCraft main history for GitHub sync"
+              -m "Merge SourceCraft main history for GitHub sync" || merge_status=$?
+
+            if [[ "${merge_status:-0}" -ne 0 ]]; then
+              conflicts=$(git diff --name-only --diff-filter=U)
+              printf 'Initial sync conflicts:\n%s\n' "$conflicts"
+
+              # These are the add/add conflicts reviewed from the first sync.
+              # Keep GitHub's museum app, data handling, and deploy workflow.
+              # Resolve each path deliberately; don't auto-resolve new paths.
+              reviewed_conflicts=(
+                .gitignore
+                .sourcecraft/ci.yaml
+                README.md
+                TEAM.md
+                backend/app/api/__init__.py
+                backend/app/config.py
+                frontend/index.html
+                frontend/src/app/styles/globals.css
+                frontend/src/pages/home/ui/home-page.tsx
+                frontend/src/shared/api/client.ts
+                frontend/src/shared/api/index.ts
+                frontend/vite.config.ts
+              )
+              for path in "${reviewed_conflicts[@]}"; do
+                if grep -Fxq -- "$path" <<< "$conflicts"; then
+                  git checkout --ours -- "$path"
+                  git add -- "$path"
+                fi
+              done
+
+              remaining=$(git diff --name-only --diff-filter=U)
+              if [[ -n "$remaining" ]]; then
+                echo "Unreviewed merge conflicts remain; refusing to push:" >&2
+                printf '%s\n' "$remaining" >&2
+                exit 1
+              fi
+
+              git -c user.name="github-actions[bot]" \
+                -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+                commit --no-edit
+            fi
           fi
 
           # Push only main, using a normal non-forced Git push.
