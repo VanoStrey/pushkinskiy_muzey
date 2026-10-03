@@ -1,0 +1,22 @@
+_bmad*/
+.claude/
+
+# Local environment (copy from .env.template)
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node / Vite
+node_modules/
+dist/
+*.tsbuildinfo
+
+# CI build output (function bundle)
+/build/
+
+# OS / editors
+.DS_Store

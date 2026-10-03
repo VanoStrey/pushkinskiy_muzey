@@ -1,0 +1,55 @@
+# Local development stack: `cp .env.template .env && docker compose up`
+# then open http://localhost:5173/
+services:
+  ydb:
+    image: ydbplatform/local-ydb:26.3.1.16
+    # The hostname must match the endpoint the backend uses (grpc://ydb:2136),
+    # because YDB returns it during endpoint discovery.
+    hostname: ydb
+    environment:
+      GRPC_PORT: "2136"
+      MON_PORT: "8765"
+      YDB_USE_IN_MEMORY_PDISKS: "false"
+    ports:
+      - "8765:8765" # YDB web UI: http://localhost:8765
+    volumes:
+      - ydb_data:/ydb_data
+      - ydb_certs:/ydb_certs
+
+  backend:
+    build: ./backend
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    env_file: .env
+    ports:
+      - "8000:8000" # backend app: http://localhost:8000
+    environment:
+      WATCHFILES_FORCE_POLLING: "true"
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ./backend/app:/app/app
+    depends_on:
+      ydb:
+        # local-ydb ships its own healthcheck; wait for it so the startup
+        # connection check succeeds on the first run.
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173" # frontend app: http://localhost:5173
+    environment:
+      # Vite proxies /api to the backend, like API Gateway does in the cloud.
+      API_PROXY_TARGET: http://backend:8000
+      VITE_USE_POLLING: "true"
+    # Only src/ is mounted; config files and node_modules live in the image,
+    # so after changing them run `docker compose up --build`.
+    volumes:
+      - ./frontend/src:/app/src
+    depends_on:
+      - backend
+
+volumes:
+  ydb_data:
+  ydb_certs:

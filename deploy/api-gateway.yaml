@@ -1,0 +1,52 @@
+# Yandex API Gateway spec: the single public HTTPS entry point.
+#   /api/*        -> Cloud Function (FastAPI backend)
+#   anything else -> Object Storage bucket (Vite build from frontend/dist)
+# __PLACEHOLDERS__ are substituted by .sourcecraft/ci.yaml before the gateway
+# is created or updated. Do not put real IDs here.
+openapi: 3.0.0
+info:
+  title: hackathon-app
+  version: 1.0.0
+
+paths:
+  /api/{proxy+}:
+    x-yc-apigateway-any-method:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: __FUNCTION_ID__
+        tag: $latest
+        service_account_id: __SA_ID__
+        payload_format_version: '1.0'
+
+  /:
+    get:
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: __BUCKET__
+        object: index.html
+        service_account_id: __SA_ID__
+
+  # Static files (/assets/..., /favicon.svg). Any other path is a client-side
+  # route of the SPA, so a missing object falls back to index.html with 200.
+  /{path+}:
+    get:
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: __BUCKET__
+        object: '{path}'
+        error_object:
+          object: index.html
+          statusCode: 200
+        service_account_id: __SA_ID__

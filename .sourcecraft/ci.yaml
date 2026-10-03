@@ -1,0 +1,170 @@
+# SourceCraft CI/CD. Setup: README.md, "Деплой в облако".
+#
+# Deploy needs no repository secrets and no edits to this file. Everything
+# comes from the service connection `default-service-connection` (folder +
+# service account, no stored keys). Its service account needs the `editor`
+# role on the folder. On every push to main the deploy task creates any
+# missing resource (YDB Serverless, Cloud Function, bucket, API Gateway) and
+# updates the rest. The same service account runs the function and the gateway.
+
+on:
+  push:
+    - workflows: [deploy]
+      filter:
+        branches: ["main"]
+
+tokens:
+  yc:
+    service_connection: default-service-connection-xx
+    scope: repo
+
+workflows:
+  deploy:
+    env:
+      # Prefix of every cloud resource name. Change it only before the first deploy.
+      APP_NAME: hackathon-app
+      # AI Studio model for the function (YANDEX_MODEL in .env.template).
+      YANDEX_MODEL: yandexgpt-5-lite/latest
+    tasks:
+      - name: deploy
+        env:
+          YC_FOLDER_ID: ${{ tokens.yc.folder_id }}
+          YC_SA_ID: ${{ tokens.yc.service_account_id }}
+        cubes:
+          # Tests and builds run before anything is deployed, so a broken
+          # commit on main never reaches the cloud: cubes run in order and
+          # the task stops at the first failed cube.
+          # The same cube packs the function bundle: app/ + index.py + requirements.txt.
+          - name: backend-test-and-bundle
+            image: ghcr.io/astral-sh/uv:0.12.13-python3.12-trixie-slim@sha256:87bc72093c0aa93cc962bd7c0498ddf416dad3ce9e1434724e936e02b72afe5d
+            script:
+              - cd backend
+              - uv sync --frozen
+              - uv run pytest
+              - rm -rf ../build && mkdir -p ../build/function
+              - uv export --frozen --no-dev --no-hashes --output-file ../build/function/requirements.txt
+              - cp -r app index.py ../build/function/
+              - find ../build/function -name __pycache__ -prune -exec rm -rf {} +
+              - cd ../build/function && python3 -m zipfile -c ../function.zip app index.py requirements.txt
+
+          - name: frontend-build
+            image: node:22.23.2-alpine@sha256:b6f26b36c8ff49624cfdac716b8ea1138d606df02586a77d364bb5536a634f85
+            script:
+              - cd frontend
+              - npm ci
+              - npm run lint
+              - npm run build
+
+          - name: get-iam-token
+            image: cr.yandex/sourcecraft/yc-iam@sha256:b3c89d9c545feded7a335d3afa87011efb130fbd5fd6a762f8db2e111015496b
+            env:
+              ID_TOKEN: ${{ tokens.yc.id_token }}
+              YC_SA_ID: ${{ tokens.yc.service_account_id }}
+
+          # YDB Serverless: create once, then read its endpoint.
+          # `.endpoint` looks like grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/...
+          - name: ensure-ydb
+            image: cr.yandex/sourcecraft/yc-cli@sha256:73c90057f9348c83dc3da0566ca4ab3a15b016916e3da155648941dc1d100807
+            env:
+              YC_IAM_TOKEN: ${{ cubes.get-iam-token.outputs.IAM_TOKEN }}
+            script:
+              - |
+                set -eu
+                yc config set folder-id "$YC_FOLDER_ID"
+                DB_NAME="$APP_NAME-db"
+                if ! yc ydb database get --name "$DB_NAME" > /dev/null 2>&1; then
+                  echo "Creating YDB Serverless database $DB_NAME (1-2 minutes)"
+                  yc ydb database create --name "$DB_NAME" --serverless
+                fi
+                FULL=$(yc ydb database get --name "$DB_NAME" --jq .endpoint | tr -d '"')
+                echo "YDB_ENDPOINT=${FULL%%/\?database=*}" >> "$SOURCECRAFT_OUTPUT"
+                echo "YDB_DATABASE=${FULL#*/\?database=}" >> "$SOURCECRAFT_OUTPUT"
+
+          - name: deploy-function
+            image: cr.yandex/sourcecraft/yc-cli@sha256:73c90057f9348c83dc3da0566ca4ab3a15b016916e3da155648941dc1d100807
+            env:
+              YC_IAM_TOKEN: ${{ cubes.get-iam-token.outputs.IAM_TOKEN }}
+              YDB_ENDPOINT: ${{ cubes.ensure-ydb.outputs.YDB_ENDPOINT }}
+              YDB_DATABASE: ${{ cubes.ensure-ydb.outputs.YDB_DATABASE }}
+            script:
+              - |
+                set -eu
+                yc config set folder-id "$YC_FOLDER_ID"
+                FUNCTION_NAME="$APP_NAME-api"
+                if ! yc serverless function get --name "$FUNCTION_NAME" > /dev/null 2>&1; then
+                  yc serverless function create --name "$FUNCTION_NAME"
+                fi
+                yc serverless function version create \
+                  --function-name "$FUNCTION_NAME" \
+                  --runtime python312 \
+                  --entrypoint index.handler \
+                  --memory 256m \
+                  --execution-timeout 60s \
+                  --service-account-id "$YC_SA_ID" \
+                  --environment "YDB_ENDPOINT=$YDB_ENDPOINT,YDB_DATABASE=$YDB_DATABASE,YDB_METADATA_CREDENTIALS=1,YANDEX_FOLDER_ID=$YC_FOLDER_ID,YANDEX_MODEL=$YANDEX_MODEL" \
+                  --source-path build/function.zip
+                FUNCTION_ID=$(yc serverless function get --name "$FUNCTION_NAME" --jq .id | tr -d '"')
+                echo "FUNCTION_ID=$FUNCTION_ID" >> "$SOURCECRAFT_OUTPUT"
+
+          # Private bucket; the gateway reads it with the service account.
+          # Content-Type is set explicitly, because the gateway returns it as is.
+          - name: deploy-frontend
+            image: cr.yandex/sourcecraft/yc-cli@sha256:73c90057f9348c83dc3da0566ca4ab3a15b016916e3da155648941dc1d100807
+            env:
+              YC_IAM_TOKEN: ${{ cubes.get-iam-token.outputs.IAM_TOKEN }}
+            script:
+              - |
+                set -eu
+                yc config set folder-id "$YC_FOLDER_ID"
+                BUCKET="$APP_NAME-$YC_FOLDER_ID"
+                if ! yc storage bucket get --name "$BUCKET" > /dev/null 2>&1; then
+                  yc storage bucket create --name "$BUCKET"
+                fi
+                cd frontend/dist
+                # index.html goes last, so it never references assets that are not uploaded yet.
+                { find . -type f ! -path ./index.html; echo ./index.html; } | while read -r file; do
+                  key="${file#./}"
+                  case "$key" in
+                    *.html) type="text/html; charset=utf-8" ;;
+                    *.js|*.mjs) type="text/javascript; charset=utf-8" ;;
+                    *.css) type="text/css; charset=utf-8" ;;
+                    *.json|*.map) type="application/json" ;;
+                    *.svg) type="image/svg+xml" ;;
+                    *.png) type="image/png" ;;
+                    *.jpg|*.jpeg) type="image/jpeg" ;;
+                    *.gif) type="image/gif" ;;
+                    *.webp) type="image/webp" ;;
+                    *.ico) type="image/x-icon" ;;
+                    *.woff) type="font/woff" ;;
+                    *.woff2) type="font/woff2" ;;
+                    *.ttf) type="font/ttf" ;;
+                    *.txt) type="text/plain; charset=utf-8" ;;
+                    *.webmanifest) type="application/manifest+json" ;;
+                    *) type="application/octet-stream" ;;
+                  esac
+                  echo "$key ($type)"
+                  yc storage s3api put-object --bucket "$BUCKET" --key "$key" --body "$file" --content-type "$type" > /dev/null
+                done
+
+          - name: deploy-gateway
+            image: cr.yandex/sourcecraft/yc-cli@sha256:73c90057f9348c83dc3da0566ca4ab3a15b016916e3da155648941dc1d100807
+            env:
+              YC_IAM_TOKEN: ${{ cubes.get-iam-token.outputs.IAM_TOKEN }}
+              FUNCTION_ID: ${{ cubes.deploy-function.outputs.FUNCTION_ID }}
+            script:
+              - |
+                set -eu
+                yc config set folder-id "$YC_FOLDER_ID"
+                GATEWAY_NAME="$APP_NAME-gw"
+                sed \
+                  -e "s|__FUNCTION_ID__|$FUNCTION_ID|g" \
+                  -e "s|__SA_ID__|$YC_SA_ID|g" \
+                  -e "s|__BUCKET__|$APP_NAME-$YC_FOLDER_ID|g" \
+                  deploy/api-gateway.yaml > build/api-gateway.yaml
+                if yc serverless api-gateway get --name "$GATEWAY_NAME" > /dev/null 2>&1; then
+                  yc serverless api-gateway update --name "$GATEWAY_NAME" --spec build/api-gateway.yaml
+                else
+                  yc serverless api-gateway create --name "$GATEWAY_NAME" --spec build/api-gateway.yaml
+                fi
+                DOMAIN=$(yc serverless api-gateway get --name "$GATEWAY_NAME" --jq .domain | tr -d '"')
+                echo "App URL: https://$DOMAIN/"
