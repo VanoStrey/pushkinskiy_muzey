@@ -1,0 +1,61 @@
+name: Sync main to SourceCraft
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sourcecraft-main-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full Git history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push main to SourceCraft
+        env:
+          SOURCECRAFT_PAT: ${{ secrets.SOURCECRAFT_PAT }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$SOURCECRAFT_PAT" ]]; then
+            echo "Repository secret SOURCECRAFT_PAT is not configured."
+            exit 1
+          fi
+
+          git remote add sourcecraft \
+            https://git@git.sourcecraft.dev/mai-cloud/it-prodlenka-team-15.git
+
+          # Git reads the PAT through its credential helper; it is not included
+          # in the remote URL, command arguments, or workflow logs.
+          git config credential.helper \
+            '!f() { printf "username=git\\npassword=%s\\n" "$SOURCECRAFT_PAT"; }; f'
+          trap 'git config --unset credential.helper || true' EXIT
+
+          # Keep the SourceCraft repository's existing history. If this is the
+          # first sync, Git will make a merge commit; conflicting changes stop
+          # the workflow before any push.
+          git fetch --no-tags sourcecraft refs/heads/main:refs/remotes/sourcecraft/main
+          if git merge-base --is-ancestor sourcecraft/main HEAD; then
+            echo "GitHub main already contains SourceCraft main."
+          elif git merge-base --is-ancestor HEAD sourcecraft/main; then
+            echo "SourceCraft main already contains this GitHub main commit."
+            exit 0
+          else
+            git merge --no-edit --no-ff --allow-unrelated-histories \
+              sourcecraft/main \
+              -m "Merge SourceCraft main history for GitHub sync"
+          fi
+
+          # Push only main, using a normal non-forced Git push.
+          git push sourcecraft HEAD:refs/heads/main

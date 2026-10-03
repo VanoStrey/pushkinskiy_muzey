@@ -96,36 +96,61 @@ def test_museum_text_excerpts_are_within_usage_limit():
 
 
 def test_offline_preparation_is_repeatable_from_an_unrelated_working_directory(tmp_path):
+    raw_dir = REPOSITORY_ROOT / "data/raw"
+    required_sources = [raw_dir / f"{name}.json" for name in prepare_museum_data.SOURCES]
+    if not all(path.is_file() for path in required_sources):
+        pytest.skip("official raw sources are intentionally excluded from Git")
+
+    original_files = {path: path.read_bytes() for path in PROCESSED_DIR.glob("*.json")}
+    before_report = json.loads(original_files[PROCESSED_DIR / "import_report.json"])
+    for source in before_report["sources"].values():
+        source.pop("fetched_at", None)
     before = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
         for path in PROCESSED_DIR.glob("*.json")
+        if path.name != "import_report.json"
     }
-    result = subprocess.run(
-        [sys.executable, str(REPOSITORY_ROOT / "backend/scripts/prepare_museum_data.py")],
-        cwd=tmp_path,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    after = {
-        path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in PROCESSED_DIR.glob("*.json")
-    }
-    assert before == after
-    assert "97 exhibits" in result.stdout
+    try:
+        result = subprocess.run(
+            [sys.executable, str(REPOSITORY_ROOT / "backend/scripts/prepare_museum_data.py")],
+            cwd=tmp_path,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        after_report = json.loads((PROCESSED_DIR / "import_report.json").read_text(encoding="utf-8"))
+        for source in after_report["sources"].values():
+            source.pop("fetched_at", None)
+        after = {
+            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in PROCESSED_DIR.glob("*.json")
+            if path.name != "import_report.json"
+        }
+        assert before == after
+        assert before_report == after_report
+        assert "97 exhibits" in result.stdout
+    finally:
+        for path, contents in original_files.items():
+            path.write_bytes(contents)
 
 
 def test_failed_update_does_not_replace_raw_or_processed_files(monkeypatch):
+    raw_dir = REPOSITORY_ROOT / "data/raw"
+    required_sources = [raw_dir / f"{name}.json" for name in prepare_museum_data.SOURCES]
+    manifest_path = raw_dir / "source_manifest.json"
+    if not all(path.is_file() for path in required_sources) or not manifest_path.is_file():
+        pytest.skip("official raw sources are intentionally excluded from Git")
+
     raw_before = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in (REPOSITORY_ROOT / "data/raw").glob("*.json")
+        for path in raw_dir.glob("*.json")
     }
     processed_before = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
         for path in PROCESSED_DIR.glob("*.json")
     }
-    raw = {name: (REPOSITORY_ROOT / "data/raw" / f"{name}.json").read_bytes() for name in prepare_museum_data.SOURCES}
-    metadata = json.loads((REPOSITORY_ROOT / "data/raw/source_manifest.json").read_text(encoding="utf-8"))["sources"]
+    raw = {name: (raw_dir / f"{name}.json").read_bytes() for name in prepare_museum_data.SOURCES}
+    metadata = json.loads(manifest_path.read_text(encoding="utf-8"))["sources"]
     monkeypatch.setattr(prepare_museum_data, "_download_sources", lambda: (raw, metadata))
 
     def invalid_transform(*args, **kwargs):
@@ -138,7 +163,7 @@ def test_failed_update_does_not_replace_raw_or_processed_files(monkeypatch):
 
     raw_after = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in (REPOSITORY_ROOT / "data/raw").glob("*.json")
+        for path in raw_dir.glob("*.json")
     }
     processed_after = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
