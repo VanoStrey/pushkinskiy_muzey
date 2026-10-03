@@ -29,8 +29,8 @@ export function StopChallenge({
 
   if (challenge.type === "observation") {
     return (
-      <div className="bg-[#FAF7F2] border border-[#E3DDD4] rounded-xl p-5 sm:p-6 shadow-xs" role="region" aria-label="Задание-наблюдение">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#9E2A2B] mb-2">Задание-наблюдение · без оценки</p>
+      <div className="bg-[#FAF7F2] border border-[#E3DDD4] p-5 sm:p-6 shadow-xs" role="region" aria-label="Задание-наблюдение">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#899770] mb-2">Задание-наблюдение · без оценки</p>
         <h3 className="font-serif text-lg sm:text-xl font-bold text-[#1A1918] mb-4 leading-snug">{challenge.question}</h3>
         {isAnswered ? (
           <p role="status" className="text-sm text-[#2E6B35]">Задание отмечено выполненным. Правильного ответа здесь нет.</p>
@@ -41,7 +41,7 @@ export function StopChallenge({
               setSelectedOption(null);
               onAnswer?.(null, null);
             }}
-            className="px-4 py-3 min-h-[48px] rounded-xl bg-[#9E2A2B] text-white text-sm font-medium hover:bg-[#7E1E20] focus:outline-hidden focus:ring-2 focus:ring-[#9E2A2B]"
+            className="px-4 py-3 min-h-[48px] bg-[#899770] text-white text-sm font-medium hover:bg-[#75835C] focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
           >
             Отметить задание выполненным
           </button>
@@ -53,19 +53,25 @@ export function StopChallenge({
   const handleSelect = (idx: number) => {
     if (isAnswered) return;
     setSelectedOption(idx);
-    const isCorrect = idx === challenge.correct_option;
+    const isCorrect = idx === challenge?.correct_option;
     onAnswer?.(idx, isCorrect);
   };
 
+  if (!challenge || !challenge.question) {
+    return null;
+  }
+
+  const options = Array.isArray(challenge.options) ? challenge.options : [];
+
   return (
     <div
-      className="bg-[#FAF7F2] border border-[#E3DDD4] rounded-xl p-5 sm:p-6 shadow-xs"
+      className="bg-[#FAF7F2] border border-[#E3DDD4] p-5 sm:p-6 shadow-xs"
       role="region"
       aria-label="Интерактивное задание экспоната"
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="w-2 h-2 rounded-full bg-[#9E2A2B]" aria-hidden="true" />
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9E2A2B]">
+        <span className="w-2 h-2 bg-[#899770]" aria-hidden="true" />
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#899770]">
           Интерактивное задание экспоната
         </span>
       </div>
@@ -79,13 +85,13 @@ export function StopChallenge({
         role="radiogroup"
         aria-label="Варианты ответа на загадку"
       >
-        {challenge.options.map((optionText, idx) => {
+        {options.map((optionText, idx) => {
           const isThisOptionSelected = selectedOption === idx;
           const isCorrect = idx === challenge.correct_option;
           const letterLabel = CYRILLIC_LABELS[idx] || String.fromCharCode(65 + idx);
 
           let optionStyle =
-            "bg-white border-[#E8E3DC] hover:border-[#9E2A2B] text-[#33312E] hover:bg-[#FDFBF7]";
+            "bg-white border-[#E8E3DC] hover:border-[#899770] text-[#33312E] hover:bg-[#FDFBF7]";
 
           if (isAnswered) {
             if (isCorrect) {
@@ -108,10 +114,10 @@ export function StopChallenge({
               aria-disabled={isAnswered}
               disabled={isAnswered}
               onClick={() => handleSelect(idx)}
-              className={`w-full text-left p-3.5 sm:p-4 rounded-xl border text-sm transition-all flex items-start gap-3 cursor-pointer disabled:cursor-default focus:outline-hidden focus:ring-2 focus:ring-[#9E2A2B] min-h-[48px] ${optionStyle}`}
+              className={`w-full text-left p-3.5 sm:p-4 border text-sm transition-all flex items-start gap-3 cursor-pointer disabled:cursor-default focus:outline-hidden focus:ring-2 focus:ring-[#899770] min-h-[48px] ${optionStyle}`}
             >
               <span
-                className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold mt-0.5 border ${
+                className={`w-6 h-6 shrink-0 flex items-center justify-center text-xs font-semibold mt-0.5 border ${
                   isAnswered && isCorrect
                     ? "bg-[#2E7D32] text-white border-[#2E7D32]"
                     : isAnswered && isThisOptionSelected
@@ -133,7 +139,7 @@ export function StopChallenge({
         <div
           role="status"
           aria-live="polite"
-          className={`mt-4 p-4 rounded-xl border text-xs sm:text-sm leading-relaxed transition-all animate-in fade-in duration-200 ${
+          className={`mt-4 p-4 border text-xs sm:text-sm leading-relaxed transition-all animate-in fade-in duration-200 ${
             selectedOption === challenge.correct_option
               ? "bg-[#F4F9F3] border-[#C8E6C9] text-[#1B5E20]"
               : "bg-[#FFF9F2] border-[#FFE0B2] text-[#8D4B00]"

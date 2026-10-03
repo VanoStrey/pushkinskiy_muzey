@@ -1,25 +1,67 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "TT Commons Pro";
+  src: url("/fonts/TT_Commons_Pro_Normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Commons Pro";
+  src: url("/fonts/TT_Commons_Pro_Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Commons Pro";
+  src: url("/fonts/TT_Commons_Pro_DemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Barrels";
+  src: url("/fonts/TT_Barrels_DemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --background: #FAF8F5;
-  --foreground: #1A1918;
-  --museum-crimson: #9E2A2B;
-  --museum-crimson-hover: #7E1E20;
-  --museum-sand: #F4EFEB;
-  --museum-border: #E8E3DC;
-  --museum-gold: #C69214;
+  --background: #FFFFFF;
+  --foreground: #262626;
+  --header-khaki: #ADA589;
+  --header-khaki-hover: #9E9576;
+  --accent-green: #899770;
+  --accent-green-hover: #75835C;
+  --museum-black: #000000;
+  --museum-dark: #262626;
+  --museum-sand: #F7F5F0;
+  --museum-border: #E5E1D8;
+  --museum-crimson: #899770;
+  --museum-crimson-hover: #75835C;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-museum-crimson: var(--museum-crimson);
-  --color-museum-crimson-hover: var(--museum-crimson-hover);
+  --color-header-khaki: var(--header-khaki);
+  --color-header-khaki-hover: var(--header-khaki-hover);
+  --color-accent-green: var(--accent-green);
+  --color-accent-green-hover: var(--accent-green-hover);
+  --color-museum-black: var(--museum-black);
+  --color-museum-dark: var(--museum-dark);
   --color-museum-sand: var(--museum-sand);
   --color-museum-border: var(--museum-border);
-  --color-museum-gold: var(--museum-gold);
-  --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-museum-crimson: var(--accent-green);
+  --color-museum-crimson-hover: var(--accent-green-hover);
+  --font-serif: "TT Barrels", "Cormorant Garamond", Georgia, serif;
+  --font-sans: "TT Commons Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
@@ -34,7 +76,14 @@ h1, h2, h3, .font-display {
   font-family: var(--font-serif);
 }
 
-/* Custom scrollbar for mobile cleanliness */
+/* Architectural sharp corners: strictly zero border-radius everywhere */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -43,6 +92,5 @@ h1, h2, h3, .font-display {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D8D2C9;
-  border-radius: 9999px;
+  background: #ADA589;
 }

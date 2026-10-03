@@ -85,7 +85,7 @@ export function ArtworkImage({
             }`}
           >
             <div
-              className={`rounded-full border border-[#D5CDC2] flex items-center justify-center text-[#9E2A2B] shrink-0 ${
+              className={`border border-[#D5CDC2] flex items-center justify-center text-[#899770] shrink-0 ${
                 compact ? "w-7 h-7 mb-1" : "w-12 h-12 mb-3"
               }`}
             >
@@ -132,7 +132,7 @@ export function ArtworkImage({
             type="button"
             onClick={() => setIsZoomed(true)}
             aria-label={`Рассмотреть детально: ${alt}`}
-            className="absolute bottom-3 right-3 bg-white/90 hover:bg-white text-[#1A1918] px-2.5 py-1.5 rounded text-xs font-medium shadow-sm backdrop-blur-sm flex items-center gap-1.5 transition-all border border-[#E3DDD4] cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#9E2A2B]"
+            className="absolute bottom-3 right-3 bg-white/90 hover:bg-white text-[#1A1918] px-2.5 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm flex items-center gap-1.5 transition-all border border-[#E3DDD4] cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#899770]"
             title="Рассмотреть в высоком разрешении"
           >
             <svg
@@ -175,7 +175,7 @@ export function ArtworkImage({
               type="button"
               onClick={() => setIsZoomed(false)}
               aria-label="Закрыть полноэкранный просмотр"
-              className="p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer shrink-0"
+              className="p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 transition-colors cursor-pointer shrink-0"
             >
               ✕
             </button>
@@ -187,7 +187,7 @@ export function ArtworkImage({
             <img
               src={src}
               alt={alt}
-              className="max-h-[85vh] max-w-full object-contain rounded shadow-2xl"
+              className="max-h-[85vh] max-w-full object-contain shadow-2xl"
             />
           </div>
         </div>

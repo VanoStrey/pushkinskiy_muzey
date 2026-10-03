@@ -2,19 +2,19 @@
   "sources": {
     "masterpieces": {
       "url": "https://pushkinmuseum.art/json/masterpieces.json",
-      "fetched_at": "2026-10-03T10:10:57+00:00",
+      "fetched_at": "2026-10-03T11:18:40+00:00",
       "size_bytes": 298183,
       "sha256": "16911d3df3bec05ef5672cc4dd61ceb448fd0792a5c8fdcd81a4b27afd96dce0"
     },
     "buildings": {
       "url": "https://pushkinmuseum.art/json/buildings.json",
-      "fetched_at": "2026-10-03T10:10:57+00:00",
+      "fetched_at": "2026-10-03T11:18:40+00:00",
       "size_bytes": 853784,
       "sha256": "2c6078a15c5966f98fd0057ed57bee57d30a01dc884da890dda3beb4a38cdb86"
     },
     "collects": {
       "url": "https://pushkinmuseum.art/json/collects.json",
-      "fetched_at": "2026-10-03T10:10:57+00:00",
+      "fetched_at": "2026-10-03T11:18:40+00:00",
       "size_bytes": 2,
       "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
     }

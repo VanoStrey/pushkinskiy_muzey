@@ -9,8 +9,8 @@ from typing import Any
 
 from app.ai import ask
 from app.config import settings
-from app.data.exhibits import get_route_candidates
-from app.schemas.route import RouteGenerateRequest, RouteGenerateResponse, Stop, Challenge
+from app.data.exhibits import get_route_candidates, get_hall_by_id, get_building_by_id
+from app.schemas.route import RouteGenerateRequest, RouteGenerateResponse, Stop, Challenge, BreakInfo
 
 
 class RouteGenerationError(ValueError):
@@ -22,15 +22,17 @@ ROUTE_INSTRUCTIONS = """Ты составляешь образовательны
 авторов, материалы, описания помещений или факты о доступности из своих знаний.
 Выбери 4–6 кандидатов (либо всех, если кандидатов меньше четырёх) и расположи
 их как тематический рассказ. Не утверждай, что порядок кратчайший или что он
-оптимален по расстоянию. Для каждой остановки напиши короткую причину выбора и
-задание-наблюдение, которое не требует выдуманных сведений. Не цитируй дословно
-музейные описания. Верни только JSON без Markdown в формате:
+оптимален по расстоянию. Если в visitor передан comment (пожелание/комментарий гостя),
+обязательно учти его и в поле reason подробно объясни выбор с отсылкой к интересам посетителя.
+Для каждой остановки напиши причину выбора (reason) и задание-наблюдение (activity),
+которое не требует выдуманных сведений. Не цитируй дословно музейные описания.
+Верни только JSON без Markdown в формате:
 {"stops":[{"id":"ID кандидата","reason":"...","activity":"..."}]}.
 """
 
 
 def _candidate_facts(exhibit: dict[str, Any]) -> dict[str, Any]:
-    hall = exhibit.get("hall") or {}
+    hall = exhibit.get("hall") or get_hall_by_id(exhibit.get("building_id", "116"), exhibit.get("hall_id", "")) or {}
     return {
         "id": exhibit["id"],
         "title": exhibit.get("title"),
@@ -66,6 +68,7 @@ def generate_route(
     audience: str,
     interests: list[str],
     duration_minutes: int,
+    visitor_comment: str | None = None,
 ) -> list[dict[str, str]]:
     """Ask AI for stop IDs and generated guidance, then validate IDs and count."""
     if not candidates:
@@ -73,13 +76,17 @@ def generate_route(
 
     expected_minimum = min(4, len(candidates))
     expected_maximum = min(6, len(candidates))
+    visitor_data: dict[str, Any] = {
+        "audience": audience,
+        "interests": interests,
+        "duration_minutes": duration_minutes,
+    }
+    if visitor_comment and visitor_comment.strip():
+        visitor_data["comment"] = visitor_comment.strip()
+
     prompt = json.dumps(
         {
-            "visitor": {
-                "audience": audience,
-                "interests": interests,
-                "duration_minutes": duration_minutes,
-            },
+            "visitor": visitor_data,
             "candidate_count": len(candidates),
             "required_stops": {"min": expected_minimum, "max": expected_maximum},
             "candidates": [_candidate_facts(item) for item in candidates],
@@ -117,11 +124,19 @@ def generate_route(
 
 
 def select_candidate_exhibits(
-    interests: list[str], target_count: int, building_id: str = "116"
+    interests: list[str],
+    target_count: int,
+    building_id: str = "116",
+    visitor_comment: str | None = None,
 ) -> list[dict[str, Any]]:
     """Select eligible records only from the processed museum catalog."""
     candidates = get_route_candidates(building_id)
-    terms = [value.strip().casefold() for value in interests if value.strip()]
+    comment_terms = (
+        [word for word in re.findall(r"\w{3,}", visitor_comment.casefold())]
+        if visitor_comment
+        else []
+    )
+    terms = [value.strip().casefold() for value in interests if value.strip()] + comment_terms
 
     def score(exhibit: dict[str, Any]) -> int:
         searchable = " ".join(
@@ -145,17 +160,28 @@ def _target_stop_count(duration_minutes: int) -> int:
 
 
 def generate_catalog_stops(
-    *, candidates: list[dict[str, Any]], audience: str, interests: list[str], duration_minutes: int
+    *,
+    candidates: list[dict[str, Any]],
+    audience: str,
+    interests: list[str],
+    duration_minutes: int,
+    visitor_comment: str | None = None,
 ) -> tuple[list[dict[str, str]], bool]:
     """Use the validated AI response when configured, otherwise use neutral observation tasks."""
     target_count = min(_target_stop_count(duration_minutes), len(candidates))
     if not candidates:
         return [], True
     if not settings.yandex_folder_id:
+        def format_reason(cand: dict[str, Any]) -> str:
+            if visitor_comment and visitor_comment.strip():
+                short = visitor_comment.strip()[:50]
+                return f"Подобран по вашему комментарию («{short}…»): шедевр постоянной экспозиции."
+            return "Экспонат входит в официальную экспозицию выбранного здания."
+
         return [
             {
                 "id": str(item["id"]),
-                "reason": "Экспонат входит в официальную экспозицию выбранного здания.",
+                "reason": format_reason(item),
                 "activity": "Осмотрите экспонат и отметьте одну деталь, которая привлекла ваше внимание.",
             }
             for item in candidates[:target_count]
@@ -165,31 +191,44 @@ def generate_catalog_stops(
         audience=audience,
         interests=interests,
         duration_minutes=duration_minutes,
+        visitor_comment=visitor_comment,
     ), False
 
 
 def generate_personalized_route(request: RouteGenerateRequest) -> RouteGenerateResponse:
     """Adapt the shared official-catalog generator to the original tour UI contract."""
     target_count = _target_stop_count(request.duration_minutes)
-    candidates = select_candidate_exhibits(request.interests, target_count)
+    candidates = select_candidate_exhibits(
+        request.interests,
+        target_count,
+        visitor_comment=request.visitor_comment,
+    )
     audience = f"{request.group_type}; {request.difficulty}; формат {request.style}"
+    if request.visitor_comment:
+        audience += f"; комментарий: {request.visitor_comment}"
     generated, is_fallback = generate_catalog_stops(
         candidates=candidates,
         audience=audience,
         interests=request.interests,
         duration_minutes=request.duration_minutes,
+        visitor_comment=request.visitor_comment,
     )
     by_id = {str(item["id"]): item for item in candidates}
     stops: list[Stop] = []
     for position, item in enumerate(generated, start=1):
         exhibit = by_id[item["id"]]
-        hall = exhibit.get("hall") or {}
-        building_name = hall.get("building_name") or exhibit.get("building_name")
-        hall_label = hall.get("number") or hall.get("name")
+        hall = exhibit.get("hall") or get_hall_by_id(exhibit.get("building_id", "116"), exhibit.get("hall_id", "")) or {}
+        building = get_building_by_id(exhibit.get("building_id", "116")) or {}
+        building_name = hall.get("building_name") or building.get("name") or "Главное здание"
+        hall_label = hall.get("number")
+        hall_name = hall.get("name")
         location = ", ".join(value for value in (building_name, f"Зал {hall_label}" if hall_label else None) if value)
         authors = exhibit.get("authors") or []
         date = exhibit.get("date_text") or (str(exhibit["year"]) if exhibit.get("year") is not None else None)
         source_text = str(exhibit.get("annotation") or exhibit.get("description") or "")[:500]
+        image_urls = exhibit.get("image_urls") or []
+        image_url = image_urls[0] if image_urls else None
+
         stops.append(
             Stop(
                 position=position,
@@ -197,7 +236,7 @@ def generate_personalized_route(request: RouteGenerateRequest) -> RouteGenerateR
                 title=exhibit.get("title") or "Название не указано в данных музея",
                 artist=", ".join(authors) if authors else None,
                 date=date,
-                image_url=None,
+                image_url=image_url,
                 location=location or None,
                 description=source_text or "В открытой выгрузке музея нет описания этого экспоната.",
                 personalization_reason=item["reason"],
@@ -211,7 +250,34 @@ def generate_personalized_route(request: RouteGenerateRequest) -> RouteGenerateR
                 ),
                 provenance_source=exhibit.get("inventory_number"),
                 source_url=exhibit.get("source_url"),
+                hall_id=str(hall.get("id")) if hall.get("id") else (str(exhibit.get("hall_id")) if exhibit.get("hall_id") else None),
+                hall_number=str(hall_label) if hall_label else None,
+                hall_name=hall_name,
+                floor_number=str(hall.get("floor_number")) if hall.get("floor_number") else None,
+                building_id=str(exhibit.get("building_id", "116")),
+                building_name=building_name,
             )
+        )
+
+    # Break calculation
+    has_break = False
+    break_after_stop = None
+    break_info = None
+
+    if request.include_break and len(stops) >= 3:
+        has_break = True
+        break_after_stop = len(stops) // 2
+        break_info = BreakInfo(
+            title="Перерыв на отдых и кофе",
+            location="Итальянский дворик (Зал 15) / Цокольный этаж",
+            duration_minutes=15,
+            note=(
+                "Буфет в цокольном этаже Главного здания временно закрыт на техническое обслуживание "
+                "(по данным сайта музея). Для комфортного отдыха и паузы рекомендуем Итальянский (зал 15) "
+                "или Греческий дворик (зал 14) с диванами и естественным освещением."
+            ),
+            floor_number="1",
+            hall_number="15",
         )
 
     title = "Ваш маршрут по Пушкинскому музею"
@@ -225,4 +291,7 @@ def generate_personalized_route(request: RouteGenerateRequest) -> RouteGenerateR
         duration_minutes=request.duration_minutes,
         is_fallback=is_fallback,
         stops=stops,
+        has_break=has_break,
+        break_after_stop=break_after_stop,
+        break_info=break_info,
     )
