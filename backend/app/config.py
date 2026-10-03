@@ -13,6 +13,7 @@ class Settings:
     yandex_api_key: str = os.getenv("YANDEX_API_KEY", "")
     yandex_folder_id: str = os.getenv("YANDEX_FOLDER_ID", "")
     yandex_model: str = os.getenv("YANDEX_MODEL", "yandexgpt-5-lite/latest")
+    route_overlap_threshold: float = float(os.getenv("ROUTE_OVERLAP_THRESHOLD", "0.5"))
 
 
 settings = Settings()
