@@ -32,7 +32,11 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-export async function apiPost<T>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+export async function apiPost<T, Body = unknown>(
+  path: string,
+  body?: Body,
+  init?: RequestInit,
+): Promise<T> {
   const headers = new Headers(init?.headers);
   if (!headers.has("Accept")) headers.set("Accept", "application/json");
   if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
@@ -50,12 +54,10 @@ export async function apiPost<T>(path: string, body?: unknown, init?: RequestIni
   if (!response.ok) {
     let detail = `Request failed with status ${response.status}`;
     try {
-      const errJson = await response.json();
-      if (errJson && errJson.detail) {
-        detail = typeof errJson.detail === "string" ? errJson.detail : JSON.stringify(errJson.detail);
-      }
+      const error = (await response.json()) as { detail?: unknown };
+      if (typeof error.detail === "string") detail = error.detail;
     } catch {
-      // ignore
+      // Keep the status-based message when the backend did not return JSON.
     }
     throw new ApiError(detail, response.status);
   }

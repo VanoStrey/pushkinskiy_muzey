@@ -2,16 +2,16 @@ export interface Challenge {
   type: "question" | "observation";
   question: string;
   options: string[];
-  correct_option: number;
-  explanation: string;
+  correct_option: number | null;
+  explanation: string | null;
 }
 
 export interface Stop {
   position: number;
   exhibit_id: string;
   title: string;
-  artist: string;
-  date: string;
+  artist: string | null;
+  date: string | null;
   image_url: string | null;
   location: string | null;
   description: string;
@@ -19,6 +19,7 @@ export interface Stop {
   look_closer: string;
   challenge: Challenge;
   provenance_source?: string | null;
+  source_url?: string | null;
 }
 
 export type GroupType = "solo" | "friends" | "family" | "couple";

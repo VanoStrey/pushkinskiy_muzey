@@ -3,7 +3,6 @@
 import logging
 import ydb
 from fastapi import APIRouter, Request
-from app.repositories import official_routes_repo
 from app.schemas.official_route import (
     OfficialRoute,
     UniquenessCheckRequest,
@@ -24,23 +23,18 @@ def _safe_get_ydb_pool(request: Request) -> ydb.QuerySessionPool | None:
 
 @router.get("/official", response_model=list[OfficialRoute])
 def list_official_routes(request: Request) -> list[OfficialRoute]:
-    """Retrieve all imported official routes of the Pushkin Museum."""
+    """Refresh the current catalog-backed snapshot before returning official routes."""
     pool = _safe_get_ydb_pool(request)
-    routes = official_routes_repo.get_all_routes(pool)
-    if not routes:
-        # If not yet loaded into storage, run initial idempotent import
-        routes = import_official_routes(pool)
-    return routes
+    return import_official_routes(pool)
 
 
 @router.post("/check-uniqueness", response_model=UniquenessCheckResponse)
 def verify_uniqueness(payload: UniquenessCheckRequest, request: Request) -> UniquenessCheckResponse:
     """Verify if a generated route is unique or collides with an official museum route."""
     pool = _safe_get_ydb_pool(request)
-    # Ensure official routes are populated
-    routes = official_routes_repo.get_all_routes(pool)
-    if not routes:
-        routes = import_official_routes(pool)
+    # Upsert the current matcher output so pre-merge slug-based rows cannot be
+    # returned as verified after the catalog-ID migration.
+    routes = import_official_routes(pool)
 
     return check_route_uniqueness(
         new_exhibit_ids=payload.exhibit_ids,

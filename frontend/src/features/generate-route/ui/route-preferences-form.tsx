@@ -44,7 +44,7 @@ const DIFFICULTY_OPTIONS: { id: DifficultyLevel; label: string; desc: string }[]
 ];
 
 const STYLE_OPTIONS: { id: TourStyle; label: string; desc: string }[] = [
-  { id: "quest", label: "Квест с загадками", desc: "Интерактивный поиск деталей и вопросы" },
+  { id: "quest", label: "Квест наблюдений", desc: "Интерактивный поиск деталей без викторины" },
   { id: "story", label: "Связная история", desc: "Единый драматургический сюжет визита" },
   { id: "meditative", label: "Вдумчивое созерцание", desc: "Спокойный диалог с искусством" },
 ];
@@ -112,7 +112,7 @@ export function RoutePreferencesForm({
           Маршрут, который понимает ваши интересы
         </h1>
         <p className="mt-3 text-[#5C5954] text-sm sm:text-base leading-relaxed max-w-lg mx-auto">
-          Ответьте на несколько вопросов — искусственный интеллект соберёт персональный путь по залам музея с живыми историями и интерактивными загадками.
+          Укажите интересы и формат посещения — сервис соберёт маршрут по каталогу музея с пояснениями и заданиями-наблюдениями без оценки ответов.
         </p>
       </div>
 

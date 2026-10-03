@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 import ydb
-from app.data.exhibits import get_exhibit_by_id
+from app.data.exhibits import get_all_exhibits, get_exhibit_by_id
 from app.repositories import official_routes_repo
 from app.schemas.official_route import OfficialRoute, OfficialRouteStop
 from app.services.route_normalizer import (
@@ -15,6 +15,28 @@ from app.services.route_normalizer import (
 )
 
 logger = logging.getLogger("app.services.official_routes_importer")
+
+
+def _match_catalog_exhibit(raw_stop: dict[str, Any]) -> dict[str, Any] | None:
+    """Resolve a legacy slug only when museum title and author identify one real record."""
+    title = normalize_text(str(raw_stop.get("title") or ""))
+    artist = normalize_text(str(raw_stop.get("artist") or ""))
+    legacy_id = raw_stop.get("exhibit_id")
+    by_id = get_exhibit_by_id(legacy_id) if legacy_id else None
+    if by_id:
+        authors = [normalize_text(str(author)) for author in by_id.get("authors", [])]
+        if normalize_text(str(by_id.get("title") or "")) == title and (not artist or artist in authors):
+            return by_id
+
+    matches = []
+    for exhibit in get_all_exhibits():
+        if normalize_text(str(exhibit.get("title") or "")) != title:
+            continue
+        authors = [normalize_text(str(author)) for author in exhibit.get("authors", [])]
+        if artist and artist not in authors:
+            continue
+        matches.append(exhibit)
+    return matches[0] if len(matches) == 1 else None
 
 # Curated snapshot of official museum routes discovered on pushkinmuseum.art/media/guides,
 # tmatic.travel and ar.culture.ru
@@ -307,15 +329,15 @@ def build_normalized_official_route(raw_route: dict[str, Any]) -> OfficialRoute:
     matched_exhibit_count = 0
 
     for raw_stop in raw_route.get("stops", []):
-        ex_id = raw_stop.get("exhibit_id")
-        verified_item = get_exhibit_by_id(ex_id) if ex_id else None
+        verified_item = _match_catalog_exhibit(raw_stop)
 
         if verified_item:
             matched_exhibit_count += 1
             resolved_id = verified_item["id"]
             exhibit_ids.append(resolved_id)
         else:
-            resolved_id = ex_id if ex_id else None
+            # Do not retain obsolete slugs as if they were museum catalog IDs.
+            resolved_id = None
 
         stops.append(
             OfficialRouteStop(
@@ -336,7 +358,12 @@ def build_normalized_official_route(raw_route: dict[str, Any]) -> OfficialRoute:
     # Calculate completeness score based on verified exhibit matching and stop metadata
     total_stops = max(len(stops), 1)
     completeness = round(matched_exhibit_count / total_stops, 2)
-    verification_status = "verified" if completeness >= 0.8 else "partial"
+    if matched_exhibit_count == total_stops and total_stops:
+        verification_status = "verified"
+    elif matched_exhibit_count:
+        verification_status = "partial"
+    else:
+        verification_status = "unverified"
 
     return OfficialRoute(
         id=norm_id,

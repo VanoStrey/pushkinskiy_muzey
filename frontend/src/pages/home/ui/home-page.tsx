@@ -10,8 +10,8 @@ type ViewStage = "preferences" | "generating" | "overview" | "tour" | "completed
 const GENERATING_STEPS = [
   "Анализируем постоянную экспозицию на Волхонке...",
   "Подбираем шедевры под ваши интересы...",
-  "Составляем персональные истории и интерактивные загадки...",
-  "Оптимизируем переходы между залами...",
+  "Готовим задания-наблюдения по сведениям каталога...",
+  "Сверяем остановки со связями зданий и залов...",
 ];
 
 export function HomePage() {
@@ -25,7 +25,7 @@ export function HomePage() {
   });
   const [route, setRoute] = useState<RouteGenerateResponse | null>(null);
   const [currentStopIndex, setCurrentStopIndex] = useState<number>(0);
-  const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
+  const [userAnswers, setUserAnswers] = useState<Record<number, number | null>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [generatingStepIndex, setGeneratingStepIndex] = useState(0);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -74,7 +74,7 @@ export function HomePage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSaveAnswer = (stopIndex: number, optionIndex: number) => {
+  const handleSaveAnswer = (stopIndex: number, optionIndex: number | null) => {
     setUserAnswers((prev) => ({ ...prev, [stopIndex]: optionIndex }));
   };
 
@@ -213,7 +213,7 @@ export function HomePage() {
                 Отбираем произведения из проверенного постоянного фонда Пушкинского музея на Волхонке.
               </p>
               <p className="leading-relaxed">
-                Формируем адаптированные истории и персональные загадки под выбранный формат.
+                Подготавливаем персональные пояснения и задания-наблюдения без выдуманных ответов.
               </p>
             </div>
 
@@ -258,7 +258,7 @@ export function HomePage() {
                   {route.is_fallback ? (
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5F0] border border-[#E8E3DC] text-[11px] font-semibold text-[#8D4B00] mb-3">
                       <span aria-hidden="true">🏛️</span>
-                      <span>Проверенный кураторский фонд</span>
+                      <span>Официальный каталог · нейтральный маршрут</span>
                     </div>
                   ) : (
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#9E2A2B]/8 border border-[#9E2A2B]/20 text-[11px] font-semibold text-[#9E2A2B] mb-3">
@@ -284,7 +284,7 @@ export function HomePage() {
                       🖼️ {route.stops.length} остановок
                     </span>
                     <span className="bg-[#FAF7F2] px-3 py-1.5 rounded-lg border border-[#E3DDD4] font-medium">
-                      🧩 С интерактивными загадками
+                      👁️ Задания-наблюдения без оценки
                     </span>
                     {answeredStopsCount > 0 && (
                       <span className="bg-[#EEF7ED] text-[#2E7D32] px-3 py-1.5 rounded-lg border border-[#C8E6C9] font-medium">
@@ -406,7 +406,7 @@ export function HomePage() {
                 Начать новый маршрут?
               </h2>
               <p className="text-xs text-[#5C5954] mt-1.5 leading-relaxed">
-                Вы находитесь в процессе прохождения. Если начать заново, текущий прогресс и ответы на загадки будут сброшены.
+                Вы находитесь в процессе прохождения. Если начать заново, текущий прогресс и отметки заданий будут сброшены.
               </p>
             </div>
             <div className="flex gap-2.5 pt-2">

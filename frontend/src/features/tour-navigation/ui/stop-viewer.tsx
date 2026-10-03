@@ -9,8 +9,8 @@ interface StopViewerProps {
   onPrev: () => void;
   onNext: () => void;
   onBackToOverview: () => void;
-  initialAnswer?: number;
-  onSaveAnswer?: (stopIndex: number, optionIndex: number) => void;
+  initialAnswer?: number | null;
+  onSaveAnswer?: (stopIndex: number, optionIndex: number | null) => void;
   isLastStop: boolean;
 }
 
@@ -77,7 +77,7 @@ export function StopViewer({
           key={stop.image_url || stop.exhibit_id}
           src={stop.image_url}
           alt={stop.title}
-          artist={stop.artist}
+          artist={stop.artist || "Автор не указан в данных музея"}
           className="w-full h-72 sm:h-96"
         />
 
@@ -105,7 +105,7 @@ export function StopViewer({
           {stop.title}
         </h1>
         <p className="text-sm sm:text-base text-[#5C5954] mt-1 font-sans font-medium">
-          {stop.artist} • <span className="text-[#8C867E]">{stop.date}</span>
+          {stop.artist || "Автор не указан в данных музея"} • <span className="text-[#8C867E]">{stop.date || "Дата не указана в данных музея"}</span>
         </p>
       </div>
 
@@ -130,6 +130,11 @@ export function StopViewer({
         <p className="text-sm sm:text-base text-[#474440] leading-relaxed">
           {stop.description}
         </p>
+        {stop.source_url && (
+          <a href={stop.source_url} target="_blank" rel="noreferrer" className="inline-block text-sm text-[#9E2A2B] underline underline-offset-2">
+            Карточка объекта на сайте музея
+          </a>
+        )}
       </div>
 
       {/* Look Closer Observation */}
@@ -187,7 +192,7 @@ export function StopViewer({
 
       {!hasAnswered && (
         <p className="text-center text-xs text-[#8C867E]">
-          💡 Рекомендуем выбрать вариант в загадке перед переходом к следующему залу
+          💡 Отметьте выполненным задание перед переходом к следующей остановке
         </p>
       )}
     </div>

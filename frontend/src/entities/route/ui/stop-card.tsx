@@ -13,7 +13,7 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
       onClick={onClick}
       role="button"
       tabIndex={0}
-      aria-label={`Остановка ${stop.position}: ${stop.title}, ${stop.artist}. ${
+      aria-label={`Остановка ${stop.position}: ${stop.title}, ${stop.artist || "автор не указан"}. ${
         isCompleted ? "Пройдена." : "Нажмите для перехода к экспонату."
       }`}
       onKeyDown={(e) => {
@@ -50,7 +50,7 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
           <ArtworkImage
             src={stop.image_url}
             alt={stop.title}
-            artist={stop.artist}
+            artist={stop.artist || "Автор не указан в данных музея"}
             showMagnifyButton={false}
             compact={true}
             className="w-full h-full"
@@ -71,7 +71,7 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
           </div>
 
           <p className="text-xs text-[#5C5954] mt-0.5 font-sans font-medium line-clamp-1">
-            {stop.artist}, {stop.date}
+            {stop.artist || "Автор не указан в данных музея"}, {stop.date || "Дата не указана в данных музея"}
           </p>
 
           {stop.location && (

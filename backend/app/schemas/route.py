@@ -7,24 +7,25 @@ from pydantic import BaseModel, Field
 class Challenge(BaseModel):
     type: Literal["question", "observation"] = "question"
     question: str = Field(..., description="Вопрос или интерактивное задание по экспонату")
-    options: list[str] = Field(..., min_length=2, max_length=4, description="Варианты ответа")
-    correct_option: int = Field(..., ge=0, description="Индекс правильного ответа (начиная с 0)")
-    explanation: str = Field(..., description="Пояснение к ответу после взаимодействия")
+    options: list[str] = Field(default_factory=list, max_length=4, description="Варианты ответа только для викторины")
+    correct_option: int | None = Field(None, ge=0, description="Индекс правильного ответа; отсутствует у задания-наблюдения")
+    explanation: str | None = Field(None, description="Пояснение, если оно есть; наблюдение не оценивается")
 
 
 class Stop(BaseModel):
     position: int = Field(..., ge=1, description="Порядковый номер остановки в маршруте")
     exhibit_id: str = Field(..., description="Идентификатор верифицированного экспоната из каталога")
     title: str = Field(..., description="Название произведения")
-    artist: str = Field(..., description="Автор произведения")
-    date: str = Field(..., description="Год или период создания")
+    artist: str | None = Field(None, description="Автор из каталога, если указан")
+    date: str | None = Field(None, description="Дата из каталога, если указана")
     image_url: str | None = Field(None, description="Ссылка на проверенное изображение экспоната")
     location: str | None = Field(None, description="Зал и здание музея")
-    description: str = Field(..., description="Достоверный исторический рассказ об экспонате")
+    description: str = Field(..., description="Фрагмент текста из подготовленного музейного каталога")
     personalization_reason: str = Field(..., description="Почему экспонат включен в маршрут именно для этого гостя")
     look_closer: str = Field(..., description="Подсказка, на какую интересную деталь обратить внимание")
     challenge: Challenge = Field(..., description="Интерактивное задание или загадка")
     provenance_source: str | None = Field(None, description="Музейное происхождение и инвентарный номер")
+    source_url: str | None = Field(None, description="Ссылка на карточку объекта в каталоге музея")
 
 
 class RouteGenerateRequest(BaseModel):
@@ -59,11 +60,6 @@ class RouteGenerateResponse(BaseModel):
     duration_minutes: int = Field(..., description="Рассчитанная продолжительность")
     is_fallback: bool = Field(
         default=False,
-        description="Флаг: является ли маршрут проверенным кураторским резервом (при недоступности AI)",
+        description="Флаг: маршрут сформирован без вызова AI Studio",
     )
-    stops: list[Stop] = Field(
-        ...,
-        min_length=4,
-        max_length=6,
-        description="Список из 4–6 последовательных остановок маршрута",
-    )
+    stops: list[Stop] = Field(..., max_length=6, description="Список до 6 остановок из доступного каталога")

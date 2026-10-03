@@ -3,7 +3,7 @@ import { ArtworkImage } from "@/entities/route";
 
 interface TourCompletionProps {
   route: RouteGenerateResponse;
-  userAnswers: Record<number, number>;
+  userAnswers: Record<number, number | null>;
   onRestart: () => void;
   onReviewStop: (index: number) => void;
   onViewOverview?: () => void;
@@ -18,11 +18,13 @@ export function TourCompletion({
 }: TourCompletionProps) {
   let correctCount = 0;
   let answeredCount = 0;
+  let questionCount = 0;
 
   route.stops.forEach((stop, idx) => {
+    if (stop.challenge.type === "question") questionCount += 1;
     if (userAnswers[idx] !== undefined) {
       answeredCount += 1;
-      if (userAnswers[idx] === stop.challenge.correct_option) {
+      if (stop.challenge.type === "question" && userAnswers[idx] === stop.challenge.correct_option) {
         correctCount += 1;
       }
     }
@@ -61,17 +63,17 @@ export function TourCompletion({
           </div>
           <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE5DE]">
             <div className="text-2xl font-serif font-bold text-[#9E2A2B]">
-              {correctCount} / {route.stops.length}
+              {questionCount ? `${correctCount} / ${questionCount}` : `${answeredCount} / ${route.stops.length}`}
             </div>
             <div className="text-[11px] text-[#7A756D] uppercase tracking-wider mt-0.5">
-              Загадок разгадано
+              {questionCount ? "Загадок разгадано" : "Заданий выполнено"}
             </div>
           </div>
         </div>
 
         {answeredCount < route.stops.length && (
           <p className="text-xs text-[#8C867E] mt-3">
-            Вы ответили на {answeredCount} из {route.stops.length} заданий.
+            Вы отметили выполненными {answeredCount} из {route.stops.length} заданий.
           </p>
         )}
       </div>
@@ -90,7 +92,7 @@ export function TourCompletion({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {route.stops.map((stop, idx) => {
             const hasAnswer = userAnswers[idx] !== undefined;
-            const isCorrect = hasAnswer && userAnswers[idx] === stop.challenge.correct_option;
+            const isCorrect = hasAnswer && stop.challenge.type === "question" && userAnswers[idx] === stop.challenge.correct_option;
 
             return (
               <div
@@ -112,7 +114,7 @@ export function TourCompletion({
                     <ArtworkImage
                       src={stop.image_url}
                       alt={stop.title}
-                      artist={stop.artist}
+                      artist={stop.artist || "Автор не указан в данных музея"}
                       showMagnifyButton={false}
                       compact={true}
                       className="w-full h-full"

@@ -4,9 +4,10 @@ from fastapi.testclient import TestClient
 
 from app.main import app as fastapi_app
 from app.repositories import official_routes_repo
-from app.schemas.official_route import OfficialRoute
+from app.schemas.official_route import OfficialRoute, OfficialRouteStop
 from app.services.official_routes_importer import (
     OFFICIAL_ROUTES_RAW_DATA,
+    build_normalized_official_route,
     import_official_routes,
 )
 from app.services.route_normalizer import (
@@ -30,6 +31,77 @@ def test_text_and_url_normalization():
     assert normalize_text("  «Шедевры   Главного   Здания»  ") == '"шедевры главного здания"'
     assert normalize_text("Импрессионизм — эпоха света") == "импрессионизм - эпоха света"
     assert normalize_url("https://PushkinMuseum.art/media/guides/?utm_source=test#frag") == "https://pushkinmuseum.art/media/guides"
+
+
+def test_legacy_route_slugs_map_only_to_matching_real_catalog_ids():
+    route = build_normalized_official_route(
+        {
+            "id": "legacy-slug-check",
+            "title": "Проверка старых slug ID",
+            "source_url": "https://pushkinmuseum.art/test",
+            "stops": [
+                {
+                    "position": 1,
+                    "title": "Голубые танцовщицы",
+                    "artist": "Эдгар Дега",
+                    "exhibit_id": "degas-blue-dancers",
+                },
+                {
+                    "position": 2,
+                    "title": "Несопоставленный объект",
+                    "artist": "Неизвестный автор",
+                    "exhibit_id": "unknown-slug-id",
+                },
+            ],
+        }
+    )
+
+    assert route.exhibit_ids == ["4262"]
+    assert route.stops[0].exhibit_id == "4262"
+    assert route.stops[1].exhibit_id is None
+    assert route.verification_status == "partial"
+    assert route.completeness_score == 0.5
+
+
+def test_routes_with_no_catalog_matches_are_not_marked_verified():
+    route = build_normalized_official_route(
+        {
+            "id": "unknown-route-check",
+            "title": "Непроверенный маршрут",
+            "source_url": "https://pushkinmuseum.art/test",
+            "stops": [
+                {"position": 1, "title": "Несопоставленный объект", "exhibit_id": "old-slug"},
+            ],
+        }
+    )
+    assert route.exhibit_ids == []
+    assert route.stops[0].exhibit_id is None
+    assert route.verification_status == "unverified"
+
+
+def test_official_api_refreshes_persisted_slug_ids_before_serving_them():
+    stale = OfficialRoute(
+        id="official-impressionism-pushkin",
+        title="Старый снимок",
+        description="Legacy route row",
+        source_url="https://pushkinmuseum.art/test",
+        source_name="test",
+        collected_at="2026-10-03T00:00:00Z",
+        sequence_hash="old-sequence",
+        set_hash="old-set",
+        exhibit_ids=["degas-blue-dancers"],
+        stops=[OfficialRouteStop(position=1, title="Голубые танцовщицы", artist="Эдгар Дега", exhibit_id="degas-blue-dancers")],
+        verification_status="verified",
+        completeness_score=1.0,
+    )
+    official_routes_repo.upsert_route(None, stale)
+
+    response = client.get("/api/routes/official")
+    assert response.status_code == 200
+    impressionism = next(item for item in response.json() if item["id"] == stale.id)
+    assert impressionism["verification_status"] == "partial"
+    assert "degas-blue-dancers" not in impressionism["exhibit_ids"]
+    assert "4262" in impressionism["exhibit_ids"]
 
 
 def test_hash_properties():
@@ -104,9 +176,9 @@ def test_significant_overlap():
     routes = import_official_routes()
     impressionism_route = next(r for r in routes if r.id == "official-impressionism-pushkin")
 
-    # 4 exhibits from impressionism official route (which has 6 exhibits) + 1 new exhibit
-    # Overlap = 4 / 5 = 80% >= 50% threshold
-    partially_overlapping_ids = impressionism_route.exhibit_ids[:4] + ["rembrandt-ahasuerus-haman"]
+    # Use the three stops that resolved to real museum IDs plus a new ID.
+    # Unmatched old slugs are deliberately absent from the imported ID sequence.
+    partially_overlapping_ids = impressionism_route.exhibit_ids[:3] + ["new-museum-id"]
 
     result = check_route_uniqueness(
         new_exhibit_ids=partially_overlapping_ids,
@@ -119,7 +191,7 @@ def test_significant_overlap():
     assert result.match_kind == "significant_overlap"
     assert result.similarity_score >= 0.5
     assert result.matched_official_route_id == "official-impressionism-pushkin"
-    assert len(result.overlapping_exhibits) == 4
+    assert len(result.overlapping_exhibits) == 3
 
 
 def test_title_theme_similarity():

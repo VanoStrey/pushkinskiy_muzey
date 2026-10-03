@@ -3,8 +3,8 @@ import type { Challenge } from "@/entities/route";
 
 interface StopChallengeProps {
   challenge: Challenge;
-  initialSelectedOption?: number;
-  onAnswer?: (optionIndex: number, isCorrect: boolean) => void;
+  initialSelectedOption?: number | null;
+  onAnswer?: (optionIndex: number | null, isCorrect: boolean | null) => void;
 }
 
 const CYRILLIC_LABELS = ["А", "Б", "В", "Г", "Д", "Е"];
@@ -14,7 +14,7 @@ export function StopChallenge({
   initialSelectedOption,
   onAnswer,
 }: StopChallengeProps) {
-  const [selectedOption, setSelectedOption] = useState<number | undefined>(
+  const [selectedOption, setSelectedOption] = useState<number | null | undefined>(
     initialSelectedOption
   );
   const [prevInitial, setPrevInitial] = useState(initialSelectedOption);
@@ -26,6 +26,29 @@ export function StopChallenge({
   }
 
   const isAnswered = selectedOption !== undefined;
+
+  if (challenge.type === "observation") {
+    return (
+      <div className="bg-[#FAF7F2] border border-[#E3DDD4] rounded-xl p-5 sm:p-6 shadow-xs" role="region" aria-label="Задание-наблюдение">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#9E2A2B] mb-2">Задание-наблюдение · без оценки</p>
+        <h3 className="font-serif text-lg sm:text-xl font-bold text-[#1A1918] mb-4 leading-snug">{challenge.question}</h3>
+        {isAnswered ? (
+          <p role="status" className="text-sm text-[#2E6B35]">Задание отмечено выполненным. Правильного ответа здесь нет.</p>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedOption(null);
+              onAnswer?.(null, null);
+            }}
+            className="px-4 py-3 min-h-[48px] rounded-xl bg-[#9E2A2B] text-white text-sm font-medium hover:bg-[#7E1E20] focus:outline-hidden focus:ring-2 focus:ring-[#9E2A2B]"
+          >
+            Отметить задание выполненным
+          </button>
+        )}
+      </div>
+    );
+  }
 
   const handleSelect = (idx: number) => {
     if (isAnswered) return;
@@ -43,7 +66,7 @@ export function StopChallenge({
       <div className="flex items-center gap-2 mb-2">
         <span className="w-2 h-2 rounded-full bg-[#9E2A2B]" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9E2A2B]">
-          Интерактивная загадка экспоната
+          Интерактивное задание экспоната
         </span>
       </div>
 
@@ -129,7 +152,7 @@ export function StopChallenge({
               </span>
             )}
           </div>
-          <p className="mt-1 text-[#383531]">{challenge.explanation}</p>
+          {challenge.explanation && <p className="mt-1 text-[#383531]">{challenge.explanation}</p>}
         </div>
       )}
     </div>
