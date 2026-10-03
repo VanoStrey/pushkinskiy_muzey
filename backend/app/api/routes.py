@@ -7,7 +7,12 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.api.exhibits import ExhibitResponse, USAGE_NOTE, enrich_exhibit
 from app.data.exhibits import get_all_buildings
-from app.services.route_generator import RouteGenerationError, generate_catalog_stops, select_candidate_exhibits
+from app.services.route_generator import (
+    RouteGenerationError,
+    generate_catalog_stops,
+    get_exhibit_topological_key,
+    select_candidate_exhibits,
+)
 
 
 logger = logging.getLogger("app.api.routes")
@@ -93,13 +98,17 @@ def create_route(payload: GenerateRouteRequest) -> GenerateRouteResponse:
         raise HTTPException(status_code=502, detail=f"AI Studio call failed ({type(exc).__name__})") from exc
 
     by_id = {candidate["id"]: candidate for candidate in enriched}
+    generated_sorted = sorted(
+        generated,
+        key=lambda item: get_exhibit_topological_key(by_id[item["id"]])
+    )
     stops = [
         RouteStopResponse(
             exhibit=ExhibitResponse.model_validate(by_id[stop["id"]]),
             reason=stop["reason"],
             activity=stop["activity"],
         )
-        for stop in generated
+        for stop in generated_sorted
     ]
     if len(candidates) < 4:
         explanation = (
