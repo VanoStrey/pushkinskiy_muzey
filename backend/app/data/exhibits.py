@@ -90,6 +90,42 @@ def get_route_candidates(building_id: str | int = "116") -> list[dict[str, Any]]
     ]
 
 
+def get_route_pool() -> list[dict[str, Any]]:
+    """Every titled exhibit from buildings that are open, for personal routes.
+
+    `get_route_candidates` is deliberately strict: it keeps only records whose
+    hall resolves and whose `show_in_hall` is true, which leaves 27 objects of
+    the Main Building. The open dataset does not publish hall numbers for the
+    Gallery of European and American Art (building 117), so that strict rule
+    drops the museum's best known works — Monet, Degas, Van Gogh, Gauguin,
+    Cezanne, Matisse, Picasso — and makes interests like "импрессионизм"
+    impossible to satisfy. This pool keeps every object that exists in the
+    dataset and marks how well its location is confirmed, so the route can
+    stay honest about it instead of hiding the collection.
+
+    Records with no `building_id` are kept as well: 27 objects — every Japanese
+    print (Hokusai, Kiyonaga, Shuncho), Malevich, Kandinsky, Vrubel, Serov,
+    Matisse's "Dance", the numismatics and the applied art — carry no building
+    in the dataset, and excluding them made interests such as Japanese graphics
+    or "тайны и символы" impossible to satisfy. Their location is reported as
+    unconfirmed rather than guessed.
+    """
+    open_buildings = {
+        str(building.get("id"))
+        for building in _all_buildings()
+        if building.get("closed") is False
+    }
+    return [
+        exhibit
+        for exhibit in _all_exhibits()
+        if exhibit.get("title")
+        and (
+            not exhibit.get("building_id")
+            or str(exhibit.get("building_id")) in open_buildings
+        )
+    ]
+
+
 def clear_catalog_cache() -> None:
     """Clear cached files; useful for tests or an in-process data refresh."""
     _all_exhibits.cache_clear()

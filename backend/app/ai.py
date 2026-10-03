@@ -24,8 +24,18 @@ def _api_key() -> str:
         return json.load(response)["access_token"]
 
 
-def ask(prompt: str, instructions: str = "", timeout: float = 50) -> str:
-    """Send one prompt to the model from `YANDEX_MODEL` and return its text answer."""
+def ask(
+    prompt: str,
+    instructions: str = "",
+    timeout: float = 50,
+    max_output_tokens: int = 1500,
+) -> str:
+    """Send one prompt to the model from `YANDEX_MODEL` and return its text answer.
+
+    `max_output_tokens` has to be raised for structured answers (a six-stop route
+    with quiz options does not fit into the default budget and comes back as
+    truncated, unparsable JSON).
+    """
     if not settings.yandex_folder_id:
         raise RuntimeError("YANDEX_FOLDER_ID is not set")
     client = openai.OpenAI(
@@ -40,6 +50,6 @@ def ask(prompt: str, instructions: str = "", timeout: float = 50) -> str:
         instructions=instructions,
         input=prompt,
         temperature=0.3,
-        max_output_tokens=1500,
+        max_output_tokens=max_output_tokens,
     )
     return response.output_text
