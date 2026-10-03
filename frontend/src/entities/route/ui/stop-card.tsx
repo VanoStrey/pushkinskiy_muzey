@@ -1,4 +1,4 @@
-import { Frame } from "@/shared/ui";
+import { Frame, IconCheck, IconPlace } from "@/shared/ui";
 import type { Stop } from "../model/types";
 import { ArtworkImage } from "./artwork-image";
 
@@ -39,7 +39,7 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
                 : "bg-ground text-ink shadow-[var(--shadow-raised-sm)]"
             }`}
           >
-            {isCompleted ? "✓" : stop.position}
+            {isCompleted ? <IconCheck size={16} /> : stop.position}
           </span>
           <span className="wall-label mt-1.5">шаг</span>
         </div>
@@ -72,9 +72,7 @@ export function StopCard({ stop, onClick, isCompleted = false }: StopCardProps) 
 
           {stop.location && (
             <p className="mt-1 line-clamp-1 flex items-center gap-1 text-[11px] text-faint">
-              <span aria-hidden="true" className="text-accent">
-                ◈
-              </span>
+              <IconPlace size={13} className="shrink-0 text-accent" />
               <span>{stop.location}</span>
             </p>
           )}

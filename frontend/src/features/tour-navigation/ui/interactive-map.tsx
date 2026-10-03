@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { BreakInfo, Stop } from "@/entities/route";
 import { ArtworkImage } from "@/entities/route";
+import { IconArrowRight, IconBreak, IconClose, IconHint, IconTarget } from "@/shared/ui";
 import {
   FLOOR_VIEWBOX,
   HALL_SPATIAL_REGISTRY,
@@ -605,7 +606,7 @@ export function InteractiveMap({
                 : "border-[#E3DDD4] bg-white text-[#726E67] hover:text-[#1A1918]"
             }`}
           >
-            <span aria-hidden="true">🎯</span>
+            <IconTarget size={15} />
             <span className="hidden sm:inline">
               {isCurrentStopOnThisFloor
                 ? `Зал ${currentStopSpatial?.number || ""}`
@@ -665,7 +666,7 @@ export function InteractiveMap({
             }}
             className="font-bold underline cursor-pointer text-[#8D4B00] hover:text-[#000000]"
           >
-            Перейти на {currentStopSpatial.floor} этаж →
+            Перейти на {currentStopSpatial.floor} этаж
           </button>
         </div>
       )}
@@ -762,7 +763,7 @@ export function InteractiveMap({
                     fontWeight="700"
                     className="select-none font-sans"
                   >
-                    🪜 На {nextFloorTransition.targetFloor} этаж: к Остановке {nextFloorTransition.targetStopNumber} →
+                    На {nextFloorTransition.targetFloor} этаж: к Остановке {nextFloorTransition.targetStopNumber} →
                   </text>
                 </g>
               )}
@@ -1226,7 +1227,7 @@ export function InteractiveMap({
                           className="mt-1 text-[11px] font-bold text-[#899770] hover:text-[#75835C] flex items-center gap-0.5 cursor-pointer"
                         >
                           <span>Перейти к описанию шедевра</span>
-                          <span aria-hidden="true">→</span>
+                          <IconArrowRight size={14} />
                         </button>
                       )}
                     </div>
@@ -1248,7 +1249,7 @@ export function InteractiveMap({
                 className="text-[#726E67] hover:text-[#1A1918] p-1 cursor-pointer shrink-0"
                 aria-label="Закрыть карточку зала"
               >
-                ✕
+                <IconClose size={15} />
               </button>
             </div>
           </div>
@@ -1279,8 +1280,8 @@ export function InteractiveMap({
           </div>
           {hasBreak && (
             <div className="flex items-center gap-1.5">
-              <span className="inline-flex items-center justify-center w-4 h-4 bg-[#C69214] text-[10px] text-white">
-                ☕
+              <span className="inline-flex h-4 w-4 items-center justify-center bg-[#C69214] text-white">
+                <IconBreak size={11} />
               </span>
               <span>Зона отдыха (Зал 15)</span>
             </div>
@@ -1290,7 +1291,7 @@ export function InteractiveMap({
         {/* Navigation & Controls Hint */}
         <div className="text-[11px] text-[#726E67] leading-relaxed pt-1.5 border-t border-[#EAE5DF] flex flex-wrap items-center justify-between gap-1">
           <span>
-            💡 <strong>Навигация:</strong> перетаскивайте карту мышью или жестом; масштаб — кнопками +/− или щипком. Порядок экскурсии обозначен номерами шагов на маркерах залов.
+            <IconHint size={12} className="mr-1 inline-block align-text-bottom" /><strong>Навигация:</strong> перетаскивайте карту мышью или жестом; масштаб — кнопками +/− или щипком. Порядок экскурсии обозначен номерами шагов на маркерах залов.
           </span>
           <span className="font-mono text-[10px] text-[#8C867E]">
             ГМИИ им. А.С. Пушкина · Волхонка, 12

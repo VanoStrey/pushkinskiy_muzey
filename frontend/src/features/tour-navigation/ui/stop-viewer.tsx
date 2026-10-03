@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { BreakInfo, Stop } from "@/entities/route";
 import { ExhibitPresentationCard } from "@/entities/route";
+import { IconBreak, IconHint, IconStairs } from "@/shared/ui";
 import { StopChallenge } from "./stop-challenge";
 
 interface StopViewerProps {
@@ -110,7 +111,7 @@ export function StopViewer({
       {hasBreakAfterCurrent && (
         <div className="bg-gilt-soft border-2 border-dashed border-gilt p-4 text-xs text-ink space-y-1.5 shadow-[var(--shadow-raised-sm)]">
           <div className="font-bold text-sm text-ink flex items-center gap-2">
-            <span className="text-base" aria-hidden="true">☕</span>
+            <IconBreak size={18} className="shrink-0 text-gilt" />
             <span>Следующий этап: пауза на отдых (~{breakInfo?.duration_minutes || 15} мин)</span>
           </div>
           <p className="text-muted leading-relaxed">
@@ -123,7 +124,7 @@ export function StopViewer({
       {isFloorTransition && nextStop && (
         <div className="bg-ground border-l-4 border-accent p-4 text-xs text-ink space-y-1 shadow-[var(--shadow-raised-sm)]">
           <div className="font-bold text-sm text-ink flex items-center gap-2">
-            <span aria-hidden="true">🪜</span>
+            <IconStairs size={15} className="shrink-0" />
             <span>Переход на {nextStop.floor_number}-й этаж музея</span>
           </div>
           <p className="text-muted leading-relaxed">
@@ -162,7 +163,7 @@ export function StopViewer({
 
       {!hasAnswered && Boolean(stop.challenge) && (
         <p className="text-center text-xs text-faint">
-          💡 Выполните задание перед переходом к следующей остановке
+          <IconHint size={13} className="mr-1 inline-block align-text-bottom" />Выполните задание перед переходом к следующей остановке
         </p>
       )}
     </div>
