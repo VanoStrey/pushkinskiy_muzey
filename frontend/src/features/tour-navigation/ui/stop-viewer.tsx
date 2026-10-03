@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Stop } from "@/entities/route";
+import type { BreakInfo, Stop } from "@/entities/route";
 import { ExhibitPresentationCard } from "@/entities/route";
 import { StopChallenge } from "./stop-challenge";
 
@@ -13,6 +13,9 @@ interface StopViewerProps {
   onSaveAnswer?: (stopIndex: number, optionIndex: number | null) => void;
   isLastStop: boolean;
   onOpenMap?: () => void;
+  nextStop?: Stop;
+  hasBreakAfterCurrent?: boolean;
+  breakInfo?: BreakInfo | null;
 }
 
 export function StopViewer({
@@ -25,6 +28,9 @@ export function StopViewer({
   onSaveAnswer,
   isLastStop,
   onOpenMap,
+  nextStop,
+  hasBreakAfterCurrent = false,
+  breakInfo,
 }: StopViewerProps) {
   const [answeredLocally, setAnsweredLocally] = useState<boolean>(false);
   const [prevStopPosition, setPrevStopPosition] = useState<number>(stop.position);
@@ -36,6 +42,13 @@ export function StopViewer({
   }
 
   const hasAnswered = initialAnswer !== undefined || answeredLocally;
+
+  // Inter-floor transition indicator between consecutive stops
+  const isFloorTransition = Boolean(
+    nextStop?.floor_number &&
+      stop.floor_number &&
+      nextStop.floor_number !== stop.floor_number
+  );
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-12">
@@ -80,8 +93,8 @@ export function StopViewer({
         onOpenMap={onOpenMap}
       />
 
-      {/* Interactive Challenge Options (if quiz type) */}
-      {stop.challenge && Array.isArray(stop.challenge.options) && stop.challenge.options.length > 0 && (
+      {/* Interactive Challenge / Observation (both questions and observations) */}
+      {stop.challenge && (
         <StopChallenge
           key={`${stop.exhibit_id}-${stop.position}`}
           challenge={stop.challenge}
@@ -91,6 +104,32 @@ export function StopViewer({
             onSaveAnswer?.(stop.position - 1, optionIndex);
           }}
         />
+      )}
+
+      {/* Break upcoming notice if break is scheduled right after this stop */}
+      {hasBreakAfterCurrent && (
+        <div className="bg-[#FAF5F0] border-2 border-dashed border-[#C69214] p-4 text-xs text-[#8D4B00] space-y-1.5 shadow-2xs">
+          <div className="font-bold text-sm text-[#8D4B00] flex items-center gap-2">
+            <span className="text-base" aria-hidden="true">☕</span>
+            <span>Следующий этап: пауза на отдых (~{breakInfo?.duration_minutes || 15} мин)</span>
+          </div>
+          <p className="text-[#5C5954] leading-relaxed">
+            {breakInfo?.location || "Итальянский дворик (Зал 15)"}. Рекомендуем отдохнуть на диванах перед переходом к следующим шедеврам.
+          </p>
+        </div>
+      )}
+
+      {/* Inter-floor transition guidance */}
+      {isFloorTransition && nextStop && (
+        <div className="bg-[#F4F6F2] border-l-4 border-[#899770] p-4 text-xs text-[#262626] space-y-1 shadow-2xs">
+          <div className="font-bold text-sm text-[#1A1918] flex items-center gap-2">
+            <span aria-hidden="true">🪜</span>
+            <span>Переход на {nextStop.floor_number}-й этаж музея</span>
+          </div>
+          <p className="text-[#5C5954] leading-relaxed">
+            Следующий шедевр («{nextStop.title}») расположен в {nextStop.hall_number ? `Зале ${nextStop.hall_number}` : "зале 2-го этажа"}. Поднимитесь по Парадной лестнице у залов 14 и 15.
+          </p>
+        </div>
       )}
 
       {/* Navigation Footer */}
@@ -121,9 +160,9 @@ export function StopViewer({
         </button>
       </div>
 
-      {!hasAnswered && Boolean(stop.challenge && Array.isArray(stop.challenge.options) && stop.challenge.options.length > 0) && (
+      {!hasAnswered && Boolean(stop.challenge) && (
         <p className="text-center text-xs text-[#8C867E]">
-          💡 Отметьте выполненным задание перед переходом к следующей остановке
+          💡 Выполните задание перед переходом к следующей остановке
         </p>
       )}
     </div>
