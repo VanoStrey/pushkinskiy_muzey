@@ -34,7 +34,7 @@ jobs:
           fi
 
           git remote add sourcecraft \
-            https://git.sourcecraft.dev/mai-cloud/it-prodlenka-team-15.git
+            https://git@git.sourcecraft.dev/mai-cloud/it-prodlenka-team-15.git
 
           # Git reads the PAT through its credential helper; it is not included
           # in the remote URL, command arguments, or workflow logs.
@@ -42,5 +42,20 @@ jobs:
             '!f() { printf "username=git\\npassword=%s\\n" "$SOURCECRAFT_PAT"; }; f'
           trap 'git config --unset credential.helper || true' EXIT
 
-          # A normal push refuses to overwrite divergent SourceCraft history.
+          # Keep the SourceCraft repository's existing history. If this is the
+          # first sync, Git will make a merge commit; conflicting changes stop
+          # the workflow before any push.
+          git fetch --no-tags sourcecraft refs/heads/main:refs/remotes/sourcecraft/main
+          if git merge-base --is-ancestor sourcecraft/main HEAD; then
+            echo "GitHub main already contains SourceCraft main."
+          elif git merge-base --is-ancestor HEAD sourcecraft/main; then
+            echo "SourceCraft main already contains this GitHub main commit."
+            exit 0
+          else
+            git merge --no-edit --no-ff --allow-unrelated-histories \
+              sourcecraft/main \
+              -m "Merge SourceCraft main history for GitHub sync"
+          fi
+
+          # Push only main, using a normal non-forced Git push.
           git push sourcecraft HEAD:refs/heads/main
